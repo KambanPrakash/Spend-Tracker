@@ -28,24 +28,25 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(2rem + env(safe-area-inset-bottom)) 1rem;
+            padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(2.5rem + env(safe-area-inset-bottom)) 1rem;
             -webkit-font-smoothing: antialiased;
         }
 
         .container {
+            width: 100%;
             max-width: 950px;
             margin: 0 auto;
         }
 
         header {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -54,7 +55,7 @@
         }
 
         h1 {
-            font-size: 1.6rem;
+            font-size: 1.65rem;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
@@ -64,9 +65,10 @@
             align-items: center;
             gap: 0.5rem;
             background: var(--card-bg);
-            padding: 0.35rem 0.6rem;
-            border-radius: 10px;
+            padding: 0.45rem 0.75rem;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
 
         .month-picker label {
@@ -79,32 +81,57 @@
             border: none;
             background: transparent;
             font-size: 0.95rem;
+            font-weight: 600;
             color: var(--text-main);
             outline: none;
         }
 
         .section-title {
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.78rem;
+            font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 1.25rem 0 0.5rem 0.25rem;
+            letter-spacing: 0.06em;
+            margin: 1.4rem 0 0.55rem 0.15rem;
         }
 
-        /* Summary Grids */
-        .summary-grid, .payment-summary-grid, .debt-summary-grid {
+        /* Full Width Edge-to-Edge Summary Grids */
+        .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 0.6rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.65rem;
+            width: 100%;
+        }
+
+        @media (min-width: 600px) {
+            .summary-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .payment-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.65rem;
+            width: 100%;
+        }
+
+        .debt-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.65rem;
+            width: 100%;
         }
 
         .card {
             background: var(--card-bg);
-            padding: 0.9rem;
-            border-radius: 12px;
+            padding: 0.95rem 0.85rem;
+            border-radius: 14px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .card.total { background: #eef7ff; border-color: #c7e2fe; }
@@ -114,18 +141,19 @@
         .card.income-card { background: #ecfdf5; border-color: #a7f3d0; }
 
         .card h3 {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
+            font-weight: 600;
             color: var(--text-muted);
             margin-bottom: 0.35rem;
         }
 
         .card .amount {
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--text-main);
-            word-break: break-word;
+            letter-spacing: -0.3px;
         }
 
         .card.total .amount { color: var(--primary); }
@@ -134,14 +162,14 @@
         .card.borrow-card .amount { color: #b45309; }
         .card.income-card .amount { color: #047857; }
 
-        /* Credit Card Balance Block */
+        /* Full Width Credit Card Block */
         .cc-tracker-card {
-            background: linear-gradient(135deg, #1e1e24 0%, #2b2b36 100%);
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
             color: #ffffff;
             padding: 1.25rem;
-            border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 0.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+            width: 100%;
         }
 
         .cc-header {
@@ -152,33 +180,34 @@
         }
 
         .cc-header span {
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #a1a1aa;
+            color: #aeaeb2;
         }
 
         .cc-details-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.1rem;
         }
 
         .cc-stat-title {
-            font-size: 0.75rem;
-            color: #a1a1aa;
+            font-size: 0.72rem;
+            color: #aeaeb2;
             margin-bottom: 0.25rem;
         }
 
         .cc-stat-val {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 700;
+            letter-spacing: -0.3px;
         }
 
-        .cc-stat-val.available { color: #4ade80; }
-        .cc-stat-val.used { color: #f87171; }
+        .cc-stat-val.available { color: #34c759; }
+        .cc-stat-val.used { color: #ff453a; }
 
         .cc-progress-bg {
             background: rgba(255, 255, 255, 0.15);
@@ -189,7 +218,7 @@
 
         .cc-progress-fill {
             height: 100%;
-            background: #4ade80;
+            background: #34c759;
             border-radius: 999px;
             transition: width 0.3s ease, background-color 0.3s ease;
         }
@@ -197,49 +226,53 @@
         /* Layout Grid */
         .layout-grid {
             display: grid;
-            grid-template-columns: 1fr 1.6fr;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+            width: 100%;
         }
 
-        @media (max-width: 800px) {
+        @media (min-width: 820px) {
             .layout-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1.6fr;
+                gap: 1.5rem;
             }
         }
 
         /* Form & List Containers */
         .form-section, .list-section {
             background: var(--card-bg);
-            padding: 1.25rem;
-            border-radius: 14px;
+            padding: 1.35rem;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            width: 100%;
         }
 
         .form-section h2, .list-section h2 {
-            font-size: 1.15rem;
-            margin-bottom: 1rem;
-            letter-spacing: -0.3px;
+            font-size: 1.2rem;
+            margin-bottom: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.4px;
         }
 
         .form-group {
-            margin-bottom: 0.9rem;
+            margin-bottom: 0.95rem;
         }
 
         label {
             display: block;
-            font-size: 0.825rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.4rem;
             color: var(--text-main);
         }
 
         input, select {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.8rem;
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px; 
             background-color: #fbfbfd;
             color: var(--text-main);
@@ -251,9 +284,9 @@
         select {
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 0.75rem center;
+            background-position: right 0.85rem center;
             background-size: 1rem;
-            padding-right: 2rem;
+            padding-right: 2.25rem;
         }
 
         input:focus, select:focus {
@@ -264,16 +297,16 @@
         .btn-group {
             display: flex;
             gap: 0.5rem;
-            margin-top: 0.5rem;
+            margin-top: 0.65rem;
         }
 
         button.btn-submit {
             flex: 1;
             background: var(--primary);
             color: white;
-            padding: 0.85rem;
+            padding: 0.9rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -286,9 +319,9 @@
         button.btn-cancel {
             background: #e5e5ea;
             color: var(--text-main);
-            padding: 0.85rem 1rem;
+            padding: 0.9rem 1.1rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
@@ -304,6 +337,7 @@
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            width: 100%;
         }
 
         table {
@@ -311,7 +345,7 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 0.85rem;
-            min-width: 530px;
+            min-width: 500px;
         }
 
         th, td {
@@ -322,7 +356,7 @@
         th {
             color: var(--text-muted);
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
         }
 
@@ -358,7 +392,6 @@
 
         .btn-edit { color: var(--primary); }
         .btn-delete { color: var(--danger); }
-        .btn-action:hover { text-decoration: underline; }
 
         .empty-state {
             text-align: center;
@@ -367,45 +400,48 @@
             font-size: 0.9rem;
         }
 
-        /* Partition Containers */
+        /* Partition Sections */
         .partition-section-container {
-            margin-top: 3rem;
-            padding-top: 2rem;
+            margin-top: 2.5rem;
+            padding-top: 1.75rem;
             border-top: 2px dashed var(--border-color);
+            width: 100%;
         }
 
         .family-wallet-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.65rem;
+            margin-bottom: 1.25rem;
+            width: 100%;
         }
 
         .family-card {
             background: #ffffff;
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            border-left: 5px solid var(--primary);
+            padding: 0.95rem 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            border-top: 4px solid var(--primary);
         }
 
-        .family-card.mom { border-left-color: #ec4899; }
-        .family-card.brother { border-left-color: #3b82f6; }
-        .family-card.self { border-left-color: #10b981; }
+        .family-card.mom { border-top-color: #ec4899; }
+        .family-card.brother { border-top-color: #3b82f6; }
+        .family-card.self { border-top-color: #10b981; }
 
         .family-card h3 {
-            font-size: 0.85rem;
+            font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
             color: var(--text-muted);
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.35rem;
         }
 
         .family-card .balance {
-            font-size: 1.5rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--text-main);
+            letter-spacing: -0.3px;
         }
     </style>
 </head>
@@ -433,11 +469,11 @@
                 <div class="cc-stat-val" id="ccTotalLimit">₹30,000.00</div>
             </div>
             <div>
-                <div class="cc-stat-title">Available Balance</div>
+                <div class="cc-stat-title">Available</div>
                 <div class="cc-stat-val available" id="ccAvailableBalance">₹30,000.00</div>
             </div>
             <div>
-                <div class="cc-stat-title">Spent This Month</div>
+                <div class="cc-stat-title">Spent</div>
                 <div class="cc-stat-val used" id="ccSpentMonthly">₹0.00</div>
             </div>
         </div>
@@ -446,7 +482,7 @@
         </div>
     </div>
 
-    <!-- Category Totals -->
+    <!-- Category Totals (Equal 2-column on mobile, 4-column on desktop) -->
     <div class="section-title">Expense Category Breakdown</div>
     <div class="summary-grid">
         <div class="card total">
@@ -504,7 +540,7 @@
             <div class="amount" id="upiTotal">₹0.00</div>
         </div>
         <div class="card payment-card">
-            <h3>Credit Card</h3>
+            <h3>Card</h3>
             <div class="amount" id="ccTotal">₹0.00</div>
         </div>
         <div class="card payment-card">
@@ -552,7 +588,7 @@
                 </div>
                 <div class="form-group">
                     <label for="purpose">Person Name / Purpose</label>
-                    <input type="text" id="purpose" placeholder="e.g., Electricity bill, Snacks, Gift" required>
+                    <input type="text" id="purpose" placeholder="e.g., Snacks, Electricity bill, Mani" required>
                 </div>
                 <div class="form-group">
                     <label for="amount">Amount (₹)</label>
@@ -596,23 +632,23 @@
     <!-- FAMILY WALLET TRACKER (MOM, BROTHER, SELF) -->
     <!-- ========================================== -->
     <div class="partition-section-container">
-        <h1 style="margin-bottom: 0.5rem;">Family Balance Tracker</h1>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        <h1 style="margin-bottom: 0.35rem;">Family Balance Tracker</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.1rem;">
             Track family cashflows (Milk selling, Schemes, Rent) separately.
         </p>
 
-        <!-- Current Available Balances -->
+        <!-- Family Cards Full Width (Equal 3-column) -->
         <div class="family-wallet-grid">
             <div class="family-card mom">
-                <h3>Mom's Balance</h3>
+                <h3>Mom</h3>
                 <div class="balance" id="momBalanceDisplay">₹0.00</div>
             </div>
             <div class="family-card brother">
-                <h3>Brother's Balance</h3>
+                <h3>Brother</h3>
                 <div class="balance" id="brotherBalanceDisplay">₹0.00</div>
             </div>
             <div class="family-card self">
-                <h3>My Balance (Self)</h3>
+                <h3>Me</h3>
                 <div class="balance" id="selfBalanceDisplay">₹0.00</div>
             </div>
         </div>
@@ -636,13 +672,13 @@
                     <div class="form-group">
                         <label for="familyFlowType">Transaction Type</label>
                         <select id="familyFlowType" required>
-                            <option value="INCOME">Add / Income (+) [e.g., Milk Sale, Scheme]</option>
-                            <option value="EXPENSE">Spend / Expense (-) [e.g., Rent, Bills]</option>
+                            <option value="INCOME">Add / Income (+) [Milk Sale, Scheme]</option>
+                            <option value="EXPENSE">Spend / Expense (-) [Rent, Bills]</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="familyPurpose">Description / Purpose</label>
-                        <input type="text" id="familyPurpose" placeholder="e.g., Milk selling, Rent paid, Govt scheme" required>
+                        <input type="text" id="familyPurpose" placeholder="e.g., Milk selling, Rent, Scheme" required>
                     </div>
                     <div class="form-group">
                         <label for="familyAmount">Amount (₹)</label>
@@ -682,14 +718,14 @@
     <!-- SIDE EARNINGS TRACKER (CAMERA SALE, RENTALS, ETC)            -->
     <!-- ============================================================ -->
     <div class="partition-section-container">
-        <h1 style="margin-bottom: 0.5rem;">Side Income & Extra Earnings</h1>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
-            Track non-salary inflows such as camera sales, equipment rentals, and other gigs.
+        <h1 style="margin-bottom: 0.35rem;">Side Income & Extra Earnings</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.1rem;">
+            Track camera gear sales, rentals, and other extra inflows.
         </p>
 
-        <div class="summary-grid" style="margin-bottom: 1.5rem;">
+        <div class="summary-grid" style="margin-bottom: 1.25rem;">
             <div class="card income-card">
-                <h3>Total Side Earnings (This Month)</h3>
+                <h3>Side Earnings (This Month)</h3>
                 <div class="amount" id="earningMonthlyTotal">₹0.00</div>
             </div>
             <div class="card income-card">
@@ -716,7 +752,7 @@
                     </div>
                     <div class="form-group">
                         <label for="earningPurpose">Client / Item Details</label>
-                        <input type="text" id="earningPurpose" placeholder="e.g., Sold 50mm Lens, Weekend Sony FX3 rental" required>
+                        <input type="text" id="earningPurpose" placeholder="e.g., Sold lens, FX3 rental" required>
                     </div>
                     <div class="form-group">
                         <label for="earningAmount">Amount Received (₹)</label>
@@ -753,24 +789,20 @@
 </div>
 
 <script>
-    // Configuration
     const CC_LIMIT = 30000;
     const INITIAL_MOM_BALANCE = 0;
     const INITIAL_BROTHER_BALANCE = 0;
     const INITIAL_SELF_BALANCE = 0;
 
-    // Local Storage Data
     let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
     let familyTransactions = JSON.parse(localStorage.getItem('familyTransactions')) || [];
     let sideEarnings = JSON.parse(localStorage.getItem('sideEarnings')) || [];
 
-    // Migrate any legacy Gadgets to Shopping
     expenses = expenses.map(item => {
         if (item.category === 'Gadgets') item.category = 'Shopping';
         return item;
     });
 
-    // Primary Elements
     const form = document.getElementById('spendForm');
     const formTitle = document.getElementById('formTitle');
     const submitBtn = document.getElementById('submitBtn');
@@ -780,7 +812,6 @@
     const transactionList = document.getElementById('transactionList');
     const emptyMessage = document.getElementById('emptyMessage');
 
-    // Family Elements
     const familyForm = document.getElementById('familyForm');
     const familyTransactionList = document.getElementById('familyTransactionList');
     const familyEmptyMessage = document.getElementById('familyEmptyMessage');
@@ -788,14 +819,12 @@
     const brotherBalanceDisplay = document.getElementById('brotherBalanceDisplay');
     const selfBalanceDisplay = document.getElementById('selfBalanceDisplay');
 
-    // Earnings Elements
     const earningForm = document.getElementById('earningForm');
     const earningTransactionList = document.getElementById('earningTransactionList');
     const earningEmptyMessage = document.getElementById('earningEmptyMessage');
     const earningMonthlyTotal = document.getElementById('earningMonthlyTotal');
     const earningAllTimeTotal = document.getElementById('earningAllTimeTotal');
 
-    // Expense Display Elements
     const totalEl = document.getElementById('totalMonthly');
     const categoryTotals = {
         'Food': document.getElementById('foodTotal'),
@@ -818,7 +847,6 @@
         'Cash': document.getElementById('cashTotal')
     };
 
-    // Credit Card Tracker Elements
     const ccTotalLimitEl = document.getElementById('ccTotalLimit');
     const ccAvailableBalanceEl = document.getElementById('ccAvailableBalance');
     const ccSpentMonthlyEl = document.getElementById('ccSpentMonthly');
@@ -941,7 +969,6 @@
         renderDashboard();
     }
 
-    // Family Form Handler
     familyForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -968,7 +995,6 @@
         renderFamilyDashboard();
     }
 
-    // Side Earning Form Handler
     earningForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -1093,8 +1119,8 @@
             ccProgressFill.style.backgroundColor = '#f59e0b';
             ccAvailableBalanceEl.style.color = '#f59e0b';
         } else {
-            ccProgressFill.style.backgroundColor = '#4ade80';
-            ccAvailableBalanceEl.style.color = '#4ade80';
+            ccProgressFill.style.backgroundColor = '#34c759';
+            ccAvailableBalanceEl.style.color = '#34c759';
         }
     }
 
