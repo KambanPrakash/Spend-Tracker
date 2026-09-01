@@ -9,6 +9,10 @@
     <meta name="apple-mobile-web-app-title" content="SpendTracker">
     
     <title>Personal Spend & Income Tracker</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --bg-color: #f2f2f7;
@@ -34,7 +38,7 @@
         html, body {
             width: 100%;
             max-width: 100vw;
-            overflow-x: hidden; /* Prevents iPhone right-side whitespace */
+            overflow-x: hidden;
         }
 
         body {
@@ -61,10 +65,35 @@
             width: 100%;
         }
 
+        .header-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         h1 {
             font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: -0.5px;
+        }
+
+        .sync-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: #dcfce7;
+            color: #15803d;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .sync-dot {
+            width: 6px;
+            height: 6px;
+            background: #15803d;
+            border-radius: 50%;
         }
 
         .month-picker {
@@ -102,7 +131,6 @@
             margin: 1.25rem 0 0.55rem 0.15rem;
         }
 
-        /* 100% Full Width Equal Grids */
         .summary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -167,7 +195,6 @@
         .card.borrow-card .amount { color: #b45309; }
         .card.income-card .amount { color: #047857; }
 
-        /* Credit Card Block */
         .cc-tracker-card {
             background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
             color: #ffffff;
@@ -229,7 +256,6 @@
             transition: width 0.3s ease, background-color 0.3s ease;
         }
 
-        /* Layout Grid */
         .layout-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -245,7 +271,6 @@
             }
         }
 
-        /* Form & List Containers */
         .form-section, .list-section {
             background: var(--card-bg);
             padding: 1.25rem 1rem;
@@ -338,11 +363,6 @@
             -webkit-appearance: none;
         }
 
-        button.btn-submit:active, button.btn-cancel:active {
-            opacity: 0.8;
-        }
-
-        /* Contained Horizontal Scroll for Tables on Mobile */
         .table-responsive {
             display: block;
             width: 100%;
@@ -388,9 +408,7 @@
         .badge-expense { background: #fee2e2; color: #b91c1c; }
         .badge-earning { background: #ccfbf1; color: #0f766e; }
 
-        .action-cell {
-            white-space: nowrap;
-        }
+        .action-cell { white-space: nowrap; }
 
         .btn-action {
             background: none;
@@ -411,7 +429,6 @@
             font-size: 0.9rem;
         }
 
-        /* Partition Sections */
         .partition-section-container {
             margin-top: 2.25rem;
             padding-top: 1.5rem;
@@ -461,7 +478,10 @@
 
 <div class="container">
     <header>
-        <h1>Spend Tracker</h1>
+        <div class="header-title-wrap">
+            <h1>Spend Tracker</h1>
+            <div class="sync-badge"><div class="sync-dot"></div> Live Cloud Sync</div>
+        </div>
         <div class="month-picker">
             <label for="monthFilter">Month</label>
             <input type="month" id="monthFilter">
@@ -623,13 +643,10 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="transactionList">
-                        </tbody>
+                    <tbody id="transactionList"></tbody>
                 </table>
             </div>
-            <div id="emptyMessage" class="empty-state" style="display: none;">
-                No records logged for this month.
-            </div>
+            <div id="emptyMessage" class="empty-state" style="display: none;">No records logged for this month.</div>
         </section>
     </div>
 
@@ -703,13 +720,10 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="familyTransactionList">
-                            </tbody>
+                        <tbody id="familyTransactionList"></tbody>
                     </table>
                 </div>
-                <div id="familyEmptyMessage" class="empty-state" style="display: none;">
-                    No family transactions recorded yet.
-                </div>
+                <div id="familyEmptyMessage" class="empty-state" style="display: none;">No family transactions recorded yet.</div>
             </section>
         </div>
     </div>
@@ -772,33 +786,33 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="earningTransactionList">
-                            </tbody>
+                        <tbody id="earningTransactionList"></tbody>
                     </table>
                 </div>
-                <div id="earningEmptyMessage" class="empty-state" style="display: none;">
-                    No side earnings recorded yet.
-                </div>
+                <div id="earningEmptyMessage" class="empty-state" style="display: none;">No side earnings recorded yet.</div>
             </section>
         </div>
     </div>
 </div>
 
 <script>
+    // --- FIREBASE INITIALIZATION ---
+    const firebaseConfig = {
+        databaseURL: "https://spend-tracker-8ebad-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const CC_LIMIT = 30000;
     const INITIAL_MOM_BALANCE = 0;
     const INITIAL_BROTHER_BALANCE = 0;
     const INITIAL_SELF_BALANCE = 0;
 
-    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-    let familyTransactions = JSON.parse(localStorage.getItem('familyTransactions')) || [];
-    let sideEarnings = JSON.parse(localStorage.getItem('sideEarnings')) || [];
+    let expenses = [];
+    let familyTransactions = [];
+    let sideEarnings = [];
 
-    expenses = expenses.map(item => {
-        if (item.category === 'Gadgets') item.category = 'Shopping';
-        return item;
-    });
-
+    // --- DOM Elements ---
     const form = document.getElementById('spendForm');
     const formTitle = document.getElementById('formTitle');
     const submitBtn = document.getElementById('submitBtn');
@@ -871,17 +885,24 @@
     document.getElementById('familyDate').value = today.toISOString().split('T')[0];
     document.getElementById('earningDate').value = today.toISOString().split('T')[0];
 
-    function saveToStorage() {
-        localStorage.setItem('expenses', JSON.stringify(expenses));
-    }
+    // --- REALTIME SYNC LISTENERS ---
+    db.ref('expenses').on('value', snapshot => {
+        const val = snapshot.val();
+        expenses = val ? Object.values(val) : [];
+        renderDashboard();
+    });
 
-    function saveFamilyToStorage() {
-        localStorage.setItem('familyTransactions', JSON.stringify(familyTransactions));
-    }
+    db.ref('familyTransactions').on('value', snapshot => {
+        const val = snapshot.val();
+        familyTransactions = val ? Object.values(val) : [];
+        renderFamilyDashboard();
+    });
 
-    function saveEarningsToStorage() {
-        localStorage.setItem('sideEarnings', JSON.stringify(sideEarnings));
-    }
+    db.ref('sideEarnings').on('value', snapshot => {
+        const val = snapshot.val();
+        sideEarnings = val ? Object.values(val) : [];
+        renderEarningsDashboard();
+    });
 
     function resetFormState() {
         form.reset();
@@ -906,7 +927,6 @@
         formTitle.textContent = 'Edit Entry';
         submitBtn.textContent = 'Update Entry';
         cancelBtn.style.display = 'block';
-
         document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -920,56 +940,33 @@
         const purposeVal = document.getElementById('purpose').value.trim();
         const amountVal = parseFloat(document.getElementById('amount').value);
 
-        if (editId) {
-            const index = expenses.findIndex(exp => exp.id === editId);
-            if (index !== -1) {
-                expenses[index] = {
-                    id: editId,
-                    date: dateVal,
-                    category: categoryVal,
-                    paymentMethod: paymentVal,
-                    purpose: purposeVal,
-                    amount: amountVal
-                };
-            }
-        } else {
-            const newExpense = {
-                id: Date.now().toString(),
-                date: dateVal,
-                category: categoryVal,
-                paymentMethod: paymentVal,
-                purpose: purposeVal,
-                amount: amountVal
-            };
-            expenses.push(newExpense);
-        }
+        const id = editId || Date.now().toString();
+        const entry = {
+            id: id,
+            date: dateVal,
+            category: categoryVal,
+            paymentMethod: paymentVal,
+            purpose: purposeVal,
+            amount: amountVal
+        };
 
-        saveToStorage();
-
-        if (dateVal.startsWith(monthFilter.value)) {
-            renderDashboard();
-        } else {
+        db.ref('expenses/' + id).set(entry);
+        if (!dateVal.startsWith(monthFilter.value)) {
             monthFilter.value = dateVal.slice(0, 7);
-            renderDashboard();
         }
-
         resetFormState();
     });
 
     function deleteExpense(id) {
-        expenses = expenses.filter(exp => exp.id !== id);
-        saveToStorage();
-        if (editIdInput.value === id) {
-            resetFormState();
-        }
-        renderDashboard();
+        db.ref('expenses/' + id).remove();
+        if (editIdInput.value === id) resetFormState();
     }
 
     familyForm.addEventListener('submit', (e) => {
         e.preventDefault();
-
+        const id = Date.now().toString();
         const newFamilyTx = {
-            id: Date.now().toString(),
+            id: id,
             date: document.getElementById('familyDate').value,
             person: document.getElementById('familyPerson').value,
             flowType: document.getElementById('familyFlowType').value,
@@ -977,72 +974,48 @@
             amount: parseFloat(document.getElementById('familyAmount').value)
         };
 
-        familyTransactions.push(newFamilyTx);
-        saveFamilyToStorage();
-        renderFamilyDashboard();
-
+        db.ref('familyTransactions/' + id).set(newFamilyTx);
         familyForm.reset();
         document.getElementById('familyDate').value = new Date().toISOString().split('T')[0];
     });
 
     function deleteFamilyTransaction(id) {
-        familyTransactions = familyTransactions.filter(item => item.id !== id);
-        saveFamilyToStorage();
-        renderFamilyDashboard();
+        db.ref('familyTransactions/' + id).remove();
     }
 
     earningForm.addEventListener('submit', (e) => {
         e.preventDefault();
-
+        const id = Date.now().toString();
         const newEarning = {
-            id: Date.now().toString(),
+            id: id,
             date: document.getElementById('earningDate').value,
             source: document.getElementById('earningCategory').value,
             details: document.getElementById('earningPurpose').value.trim(),
             amount: parseFloat(document.getElementById('earningAmount').value)
         };
 
-        sideEarnings.push(newEarning);
-        saveEarningsToStorage();
-        renderEarningsDashboard();
-
+        db.ref('sideEarnings/' + id).set(newEarning);
         earningForm.reset();
         document.getElementById('earningDate').value = new Date().toISOString().split('T')[0];
     });
 
     function deleteSideEarning(id) {
-        sideEarnings = sideEarnings.filter(item => item.id !== id);
-        saveEarningsToStorage();
-        renderEarningsDashboard();
+        db.ref('sideEarnings/' + id).remove();
     }
 
     function renderDashboard() {
         const selectedMonth = monthFilter.value;
         const filteredExpenses = expenses
-            .filter(exp => exp.date.startsWith(selectedMonth))
+            .filter(exp => exp.date && exp.date.startsWith(selectedMonth))
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
         let overallExpenseTotal = 0;
         const subTotals = {
-            'Food': 0,
-            'Travel': 0,
-            'Entertainment': 0,
-            'Personal Care': 0,
-            'Shopping': 0,
-            'Rental': 0,
-            'Others': 0
+            'Food': 0, 'Travel': 0, 'Entertainment': 0,
+            'Personal Care': 0, 'Shopping': 0, 'Rental': 0, 'Others': 0
         };
-
-        const dues = {
-            'Given (To Receive)': 0,
-            'Taken (Need to Repay)': 0
-        };
-
-        const payTotals = {
-            'UPI': 0,
-            'Credit Card': 0,
-            'Cash': 0
-        };
+        const dues = { 'Given (To Receive)': 0, 'Taken (Need to Repay)': 0 };
+        const payTotals = { 'UPI': 0, 'Credit Card': 0, 'Cash': 0 };
 
         transactionList.innerHTML = '';
 
@@ -1055,11 +1028,9 @@
                     subTotals[exp.category] += exp.amount;
                     overallExpenseTotal += exp.amount;
                 }
-
                 if (dues.hasOwnProperty(exp.category)) {
                     dues[exp.category] += exp.amount;
                 }
-
                 const method = exp.paymentMethod || 'UPI';
                 if (payTotals.hasOwnProperty(method)) {
                     payTotals[method] += exp.amount;
@@ -1089,11 +1060,9 @@
         for (const [category, el] of Object.entries(categoryTotals)) {
             el.textContent = formatCurrency(subTotals[category] || 0);
         }
-
         for (const [type, el] of Object.entries(debtTotals)) {
             el.textContent = formatCurrency(dues[type] || 0);
         }
-
         for (const [mode, el] of Object.entries(paymentTotals)) {
             el.textContent = formatCurrency(payTotals[mode] || 0);
         }
@@ -1156,7 +1125,6 @@
         familyTransactions.forEach(tx => {
             const multiplier = tx.flowType === 'INCOME' ? 1 : -1;
             const delta = tx.amount * multiplier;
-
             if (tx.person === 'Mom') momBal += delta;
             else if (tx.person === 'Brother') brotherBal += delta;
             else if (tx.person === 'Self') selfBal += delta;
@@ -1181,7 +1149,7 @@
             earningEmptyMessage.style.display = 'none';
             sortedEarnings.forEach(item => {
                 allTimeTotal += item.amount;
-                if (item.date.startsWith(selectedMonth)) {
+                if (item.date && item.date.startsWith(selectedMonth)) {
                     monthlyTotal += item.amount;
                 }
 
@@ -1207,10 +1175,6 @@
         renderDashboard();
         renderEarningsDashboard();
     });
-
-    renderDashboard();
-    renderFamilyDashboard();
-    renderEarningsDashboard();
 </script>
 </body>
 </html>
