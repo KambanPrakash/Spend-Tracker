@@ -191,6 +191,13 @@
             letter-spacing: -0.3px;
         }
 
+        .sub-breakdown {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            font-weight: 600;
+        }
+
         .card.total .amount { color: var(--primary); }
         .card.payment-card .amount { color: #6938ef; }
         .card.lent-card .amount { color: #15803d; }
@@ -266,24 +273,16 @@
             width: 100%;
         }
 
-        @media (min-width: 820px) {
-            .layout-grid {
-                grid-template-columns: 1fr 1.6fr;
-                gap: 1.5rem;
-            }
-        }
-
-        .form-section, .list-section {
+        .form-section {
             background: var(--card-bg);
             padding: 1.25rem 1rem;
             border-radius: 16px;
             border: 1px solid var(--border-color);
             box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             width: 100%;
-            overflow: hidden;
         }
 
-        .form-section h2, .list-section h2 {
+        .form-section h2 {
             font-size: 1.15rem;
             margin-bottom: 1rem;
             font-weight: 700;
@@ -329,7 +328,6 @@
             background-color: #fff;
         }
 
-        /* Settlement Field Box */
         .settlement-box {
             background: #f0fdf4;
             border: 1px dashed #86efac;
@@ -394,12 +392,98 @@
             -webkit-appearance: none;
         }
 
+        /* Passbook Collapsible Container */
+        .passbook-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            width: 100%;
+        }
+
+        .passbook-header {
+            padding: 0.95rem 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: #ffffff;
+            transition: background 0.15s ease;
+        }
+
+        .passbook-header:hover {
+            background: #f8f8fa;
+        }
+
+        .passbook-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .passbook-icon {
+            font-size: 1.15rem;
+        }
+
+        .passbook-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .passbook-count {
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #e5e5ea;
+            color: #48484a;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+        }
+
+        .passbook-toggle-btn {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .passbook-arrow {
+            transition: transform 0.25s ease;
+            display: inline-block;
+        }
+
+        .passbook-card.open .passbook-arrow {
+            transform: rotate(180deg);
+        }
+
+        .passbook-content {
+            display: none;
+            padding: 0 1rem 1rem 1rem;
+            border-top: 1px solid var(--border-color);
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .passbook-card.open .passbook-content {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .table-responsive {
             display: block;
             width: 100%;
             max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            margin-top: 0.75rem;
         }
 
         table {
@@ -445,6 +529,7 @@
         .badge-income { background: #dcfce7; color: #15803d; }
         .badge-expense { background: #fee2e2; color: #b91c1c; }
         .badge-earning { background: #ccfbf1; color: #0f766e; }
+        .badge-carried { background: #fef3c7; color: #b45309; font-size: 0.65rem; }
 
         .settled-note {
             font-size: 0.72rem;
@@ -597,16 +682,18 @@
         </div>
     </div>
 
-    <!-- Debt Breakdown -->
-    <div class="section-title">Dues & Borrowing (Pending Balance)</div>
+    <!-- Debt Breakdown (With Automatic Carry Forward) -->
+    <div class="section-title">Dues & Borrowing (Pending Balance + Carried)</div>
     <div class="debt-summary-grid">
         <div class="card lent-card">
             <h3>Given (To Receive)</h3>
             <div class="amount" id="lentTotal">₹0.00</div>
+            <div class="sub-breakdown" id="lentCarriedSub">Carried: ₹0.00 | This Month: ₹0.00</div>
         </div>
         <div class="card borrow-card">
             <h3>Taken (Need to Repay)</h3>
             <div class="amount" id="borrowTotal">₹0.00</div>
+            <div class="sub-breakdown" id="borrowCarriedSub">Carried: ₹0.00 | This Month: ₹0.00</div>
         </div>
     </div>
 
@@ -627,6 +714,7 @@
         </div>
     </div>
 
+    <!-- ENTRY FORM -->
     <div class="layout-grid">
         <section class="form-section" id="formContainer">
             <h2 id="formTitle">Add Expense Entry</h2>
@@ -690,9 +778,22 @@
                 </div>
             </form>
         </section>
+    </div>
 
-        <section class="list-section">
-            <h2>Monthly Records</h2>
+    <!-- PASSBOOK 1: SPEND RECORDS -->
+    <div class="passbook-card" id="spendPassbook">
+        <div class="passbook-header" onclick="togglePassbook('spendPassbook')">
+            <div class="passbook-title-wrap">
+                <span class="passbook-icon">📖</span>
+                <span class="passbook-title">Spends Passbook</span>
+                <span class="passbook-count" id="spendCountBadge">0 records</span>
+            </div>
+            <div class="passbook-toggle-btn">
+                <span>View Passbook</span>
+                <span class="passbook-arrow">▼</span>
+            </div>
+        </div>
+        <div class="passbook-content">
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -709,68 +810,79 @@
                 </table>
             </div>
             <div id="emptyMessage" class="empty-state" style="display: none;">No records logged for this month.</div>
-        </section>
+        </div>
     </div>
 
     <!-- FAMILY WALLET SECTION -->
     <div class="partition-section-container">
         <h1 style="margin-bottom: 0.35rem;">Family Balance Tracker</h1>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.1rem;">
-            Track family cashflows (Milk selling, Schemes, Rent) separately.
+            Net balances carry forward month-to-month automatically.
         </p>
 
         <div class="family-wallet-grid">
             <div class="family-card mom">
-                <h3>Mom</h3>
+                <h3>Mom Balance</h3>
                 <div class="balance" id="momBalanceDisplay">₹0.00</div>
             </div>
             <div class="family-card brother">
-                <h3>Brother</h3>
+                <h3>Brother Balance</h3>
                 <div class="balance" id="brotherBalanceDisplay">₹0.00</div>
             </div>
             <div class="family-card self">
-                <h3>Me</h3>
+                <h3>Me Balance</h3>
                 <div class="balance" id="selfBalanceDisplay">₹0.00</div>
             </div>
         </div>
 
-        <div class="layout-grid">
-            <section class="form-section">
-                <h2>Add Family Cashflow</h2>
-                <form id="familyForm">
-                    <div class="form-group">
-                        <label for="familyDate">Date</label>
-                        <input type="date" id="familyDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="familyPerson">Person</label>
-                        <select id="familyPerson" required>
-                            <option value="Mom">Mom</option>
-                            <option value="Brother">Brother</option>
-                            <option value="Self">Me (Self)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="familyFlowType">Transaction Type</label>
-                        <select id="familyFlowType" required>
-                            <option value="INCOME">Add / Income (+) [Milk Sale, Scheme]</option>
-                            <option value="EXPENSE">Spend / Expense (-) [Rent, Bills]</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="familyPurpose">Description / Purpose</label>
-                        <input type="text" id="familyPurpose" placeholder="e.g., Milk selling, Rent, Scheme" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="familyAmount">Amount (₹)</label>
-                        <input type="number" id="familyAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required>
-                    </div>
-                    <button type="submit" class="btn-submit btn-family">Add Family Record</button>
-                </form>
-            </section>
+        <section class="form-section">
+            <h2>Add Family Cashflow</h2>
+            <form id="familyForm">
+                <div class="form-group">
+                    <label for="familyDate">Date</label>
+                    <input type="date" id="familyDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyPerson">Person</label>
+                    <select id="familyPerson" required>
+                        <option value="Mom">Mom</option>
+                        <option value="Brother">Brother</option>
+                        <option value="Self">Me (Self)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="familyFlowType">Transaction Type</label>
+                    <select id="familyFlowType" required>
+                        <option value="INCOME">Add / Income (+) [Milk Sale, Scheme]</option>
+                        <option value="EXPENSE">Spend / Expense (-) [Rent, Bills]</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="familyPurpose">Description / Purpose</label>
+                    <input type="text" id="familyPurpose" placeholder="e.g., Milk selling, Rent, Scheme" required>
+                </div>
+                <div class="form-group">
+                    <label for="familyAmount">Amount (₹)</label>
+                    <input type="number" id="familyAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="btn-submit btn-family">Add Family Record</button>
+            </form>
+        </section>
 
-            <section class="list-section">
-                <h2>Family Cashflow History</h2>
+        <!-- PASSBOOK 2: FAMILY CASHFLOW -->
+        <div class="passbook-card" id="familyPassbook">
+            <div class="passbook-header" onclick="togglePassbook('familyPassbook')">
+                <div class="passbook-title-wrap">
+                    <span class="passbook-icon">🏠</span>
+                    <span class="passbook-title">Family Passbook</span>
+                    <span class="passbook-count" id="familyCountBadge">0 records</span>
+                </div>
+                <div class="passbook-toggle-btn">
+                    <span>View Passbook</span>
+                    <span class="passbook-arrow">▼</span>
+                </div>
+            </div>
+            <div class="passbook-content">
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -787,7 +899,7 @@
                     </table>
                 </div>
                 <div id="familyEmptyMessage" class="empty-state" style="display: none;">No family transactions recorded yet.</div>
-            </section>
+            </div>
         </div>
     </div>
 
@@ -809,36 +921,47 @@
             </div>
         </div>
 
-        <div class="layout-grid">
-            <section class="form-section">
-                <h2>Add Side Earning</h2>
-                <form id="earningForm">
-                    <div class="form-group">
-                        <label for="earningDate">Date</label>
-                        <input type="date" id="earningDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="earningCategory">Earning Source</label>
-                        <select id="earningCategory" required>
-                            <option value="Camera Selling">Selling Camera / Gear</option>
-                            <option value="Camera Rental">Camera / Equipment Rental</option>
-                            <option value="Other Inflows">Other Side Earning</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="earningPurpose">Client / Item Details</label>
-                        <input type="text" id="earningPurpose" placeholder="e.g., Sold lens, FX3 rental" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="earningAmount">Amount Received (₹)</label>
-                        <input type="number" id="earningAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required>
-                    </div>
-                    <button type="submit" class="btn-submit btn-earning">Add Earning</button>
-                </form>
-            </section>
+        <section class="form-section">
+            <h2>Add Side Earning</h2>
+            <form id="earningForm">
+                <div class="form-group">
+                    <label for="earningDate">Date</label>
+                    <input type="date" id="earningDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="earningCategory">Earning Source</label>
+                    <select id="earningCategory" required>
+                        <option value="Camera Selling">Selling Camera / Gear</option>
+                        <option value="Camera Rental">Camera / Equipment Rental</option>
+                        <option value="Other Inflows">Other Side Earning</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="earningPurpose">Client / Item Details</label>
+                    <input type="text" id="earningPurpose" placeholder="e.g., Sold lens, FX3 rental" required>
+                </div>
+                <div class="form-group">
+                    <label for="earningAmount">Amount Received (₹)</label>
+                    <input type="number" id="earningAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="btn-submit btn-earning">Add Earning</button>
+            </form>
+        </section>
 
-            <section class="list-section">
-                <h2>Side Earnings History</h2>
+        <!-- PASSBOOK 3: SIDE EARNINGS -->
+        <div class="passbook-card" id="earningPassbook">
+            <div class="passbook-header" onclick="togglePassbook('earningPassbook')">
+                <div class="passbook-title-wrap">
+                    <span class="passbook-icon">💼</span>
+                    <span class="passbook-title">Earnings Passbook</span>
+                    <span class="passbook-count" id="earningCountBadge">0 records</span>
+                </div>
+                <div class="passbook-toggle-btn">
+                    <span>View Passbook</span>
+                    <span class="passbook-arrow">▼</span>
+                </div>
+            </div>
+            <div class="passbook-content">
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -854,7 +977,7 @@
                     </table>
                 </div>
                 <div id="earningEmptyMessage" class="empty-state" style="display: none;">No side earnings recorded yet.</div>
-            </section>
+            </div>
         </div>
     </div>
 </div>
@@ -887,7 +1010,6 @@
     const transactionList = document.getElementById('transactionList');
     const emptyMessage = document.getElementById('emptyMessage');
 
-    // Settlement Elements
     const settlementBox = document.getElementById('settlementBox');
     const isSettledCheckbox = document.getElementById('isSettled');
     const settledDateGroup = document.getElementById('settledDateGroup');
@@ -923,6 +1045,9 @@
         'Taken (Need to Repay)': document.getElementById('borrowTotal')
     };
 
+    const lentCarriedSub = document.getElementById('lentCarriedSub');
+    const borrowCarriedSub = document.getElementById('borrowCarriedSub');
+
     const paymentTotals = {
         'UPI': document.getElementById('upiTotal'),
         'Credit Card': document.getElementById('ccTotal'),
@@ -935,6 +1060,20 @@
     const ccUsagePercentEl = document.getElementById('ccUsagePercent');
     const ccProgressFill = document.getElementById('ccProgressFill');
 
+    // Passbook Badges
+    const spendCountBadge = document.getElementById('spendCountBadge');
+    const familyCountBadge = document.getElementById('familyCountBadge');
+    const earningCountBadge = document.getElementById('earningCountBadge');
+
+    function togglePassbook(id) {
+        const card = document.getElementById(id);
+        const isOpen = card.classList.toggle('open');
+        const toggleSpan = card.querySelector('.passbook-toggle-btn span');
+        if (toggleSpan) {
+            toggleSpan.textContent = isOpen ? 'Hide Passbook' : 'View Passbook';
+        }
+    }
+
     function formatCurrency(amount) {
         return '₹' + Number(amount).toLocaleString('en-IN', {
             minimumFractionDigits: 2,
@@ -942,7 +1081,7 @@
         });
     }
 
-    // --- ACCURATE LOCAL TIME HELPER ---
+    // --- ACCURATE LOCAL TIME HELPER (Prevents UTC Yesterday Glitch) ---
     function getTodayLocalDate() {
         const d = new Date();
         const year = d.getFullYear();
@@ -958,7 +1097,6 @@
         return `${year}-${month}`;
     }
 
-    // Formats ISO string (YYYY-MM-DD) to "02 Sep 2026"
     function formatToDMY(isoDateStr) {
         if (!isoDateStr) return '';
         const parts = isoDateStr.split('-');
@@ -971,7 +1109,7 @@
         return `${formattedDay} ${monthText} ${year}`;
     }
 
-    // Initialize Dates
+    // Set Live Local Date Across All Fields
     const currentToday = getTodayLocalDate();
     monthFilter.value = getTodayLocalMonth();
     document.getElementById('date').value = currentToday;
@@ -979,7 +1117,6 @@
     document.getElementById('earningDate').value = currentToday;
     settledDateInput.value = currentToday;
 
-    // Toggle Settlement visibility
     function checkSettlementFieldVisibility() {
         const cat = categorySelect.value;
         const isDebt = (cat === 'Given (To Receive)' || cat === 'Taken (Need to Repay)');
@@ -1050,7 +1187,6 @@
         document.getElementById('purpose').value = item.purpose;
         document.getElementById('amount').value = item.amount;
 
-        // Settlement state
         isSettledCheckbox.checked = !!item.isSettled;
         if (item.isSettled) {
             settledDateGroup.style.display = 'block';
@@ -1145,41 +1281,70 @@
 
     function renderDashboard() {
         const selectedMonth = monthFilter.value;
-        const filteredExpenses = expenses
+
+        // Current Month Entries
+        const currentMonthExpenses = expenses
             .filter(exp => exp.date && exp.date.startsWith(selectedMonth))
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
+        // Prior Carry-Forward Dues (Unsettled dues from earlier months)
+        const priorLentUnsettled = expenses
+            .filter(exp => exp.date && exp.date < (selectedMonth + '-01') && exp.category === 'Given (To Receive)' && !exp.isSettled)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const priorBorrowUnsettled = expenses
+            .filter(exp => exp.date && exp.date < (selectedMonth + '-01') && exp.category === 'Taken (Need to Repay)' && !exp.isSettled)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        let carriedLentTotal = priorLentUnsettled.reduce((acc, curr) => acc + curr.amount, 0);
+        let carriedBorrowTotal = priorBorrowUnsettled.reduce((acc, curr) => acc + curr.amount, 0);
+
         let overallExpenseTotal = 0;
+        let monthLentTotal = 0;
+        let monthBorrowTotal = 0;
+
         const subTotals = {
             'Food': 0, 'Travel': 0, 'Entertainment': 0,
             'Personal Care': 0, 'Shopping': 0, 'Rental': 0, 'Others': 0
         };
-        const dues = { 'Given (To Receive)': 0, 'Taken (Need to Repay)': 0 };
+
         const payTotals = { 'UPI': 0, 'Credit Card': 0, 'Cash': 0 };
 
         transactionList.innerHTML = '';
 
-        if (filteredExpenses.length === 0) {
+        // Combine current month expenses and carried over dues into Passbook
+        const displayList = [
+            ...currentMonthExpenses,
+            ...priorLentUnsettled.map(item => ({ ...item, isCarried: true })),
+            ...priorBorrowUnsettled.map(item => ({ ...item, isCarried: true }))
+        ];
+
+        spendCountBadge.textContent = `${displayList.length} records`;
+
+        if (displayList.length === 0) {
             emptyMessage.style.display = 'block';
         } else {
             emptyMessage.style.display = 'none';
-            filteredExpenses.forEach(exp => {
-                // Category Totals
-                if (subTotals.hasOwnProperty(exp.category)) {
-                    subTotals[exp.category] += exp.amount;
-                    overallExpenseTotal += exp.amount;
-                }
-
-                // Dues - only add to active total if NOT settled
-                if (dues.hasOwnProperty(exp.category)) {
-                    if (!exp.isSettled) {
-                        dues[exp.category] += exp.amount;
+            displayList.forEach(exp => {
+                // Only count in spending totals if inside current month
+                if (!exp.isCarried) {
+                    if (subTotals.hasOwnProperty(exp.category)) {
+                        subTotals[exp.category] += exp.amount;
+                        overallExpenseTotal += exp.amount;
                     }
-                }
 
-                const method = exp.paymentMethod || 'UPI';
-                if (payTotals.hasOwnProperty(method)) {
-                    payTotals[method] += exp.amount;
+                    if (exp.category === 'Given (To Receive)' && !exp.isSettled) {
+                        monthLentTotal += exp.amount;
+                    }
+
+                    if (exp.category === 'Taken (Need to Repay)' && !exp.isSettled) {
+                        monthBorrowTotal += exp.amount;
+                    }
+
+                    const method = exp.paymentMethod || 'UPI';
+                    if (payTotals.hasOwnProperty(method)) {
+                        payTotals[method] += exp.amount;
+                    }
                 }
 
                 let badgeClass = 'badge';
@@ -1192,14 +1357,16 @@
                     settledInfoHtml = `<span class="settled-note">✓ Received: ${formatToDMY(exp.settledDate)}</span>`;
                 }
 
+                let carriedBadge = exp.isCarried ? `<span class="badge badge-carried">Carried</span> ` : '';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="date-cell">${formatToDMY(exp.date)}</td>
                     <td>
-                        <span class="${badgeClass}">${exp.category}</span>
+                        ${carriedBadge}<span class="${badgeClass}">${exp.category}</span>
                         ${settledInfoHtml}
                     </td>
-                    <td><span class="badge badge-payment">${method}</span></td>
+                    <td><span class="badge badge-payment">${exp.paymentMethod || 'UPI'}</span></td>
                     <td>${exp.purpose}</td>
                     <td style="font-weight: 600; ${exp.isSettled ? 'text-decoration: line-through; color: #8e8e93;' : ''}">
                         ${formatCurrency(exp.amount)}
@@ -1213,13 +1380,19 @@
             });
         }
 
+        // Totals
         totalEl.textContent = formatCurrency(overallExpenseTotal);
         for (const [category, el] of Object.entries(categoryTotals)) {
             el.textContent = formatCurrency(subTotals[category] || 0);
         }
-        for (const [type, el] of Object.entries(debtTotals)) {
-            el.textContent = formatCurrency(dues[type] || 0);
-        }
+
+        // Carry-Forward Dues Display
+        debtTotals['Given (To Receive)'].textContent = formatCurrency(carriedLentTotal + monthLentTotal);
+        lentCarriedSub.textContent = `Carried: ${formatCurrency(carriedLentTotal)} | This Month: ${formatCurrency(monthLentTotal)}`;
+
+        debtTotals['Taken (Need to Repay)'].textContent = formatCurrency(carriedBorrowTotal + monthBorrowTotal);
+        borrowCarriedSub.textContent = `Carried: ${formatCurrency(carriedBorrowTotal)} | This Month: ${formatCurrency(monthBorrowTotal)}`;
+
         for (const [mode, el] of Object.entries(paymentTotals)) {
             el.textContent = formatCurrency(payTotals[mode] || 0);
         }
@@ -1247,18 +1420,26 @@
     }
 
     function renderFamilyDashboard() {
+        const selectedMonth = monthFilter.value;
+        const endOfSelectedMonth = selectedMonth + '-31';
+
         let momBal = INITIAL_MOM_BALANCE;
         let brotherBal = INITIAL_BROTHER_BALANCE;
         let selfBal = INITIAL_SELF_BALANCE;
 
-        const sortedFamilyTx = [...familyTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Transactions filtered to selected month for passbook display
+        const monthFamilyTx = familyTransactions
+            .filter(tx => tx.date && tx.date.startsWith(selectedMonth))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        familyCountBadge.textContent = `${monthFamilyTx.length} records`;
         familyTransactionList.innerHTML = '';
 
-        if (sortedFamilyTx.length === 0) {
+        if (monthFamilyTx.length === 0) {
             familyEmptyMessage.style.display = 'block';
         } else {
             familyEmptyMessage.style.display = 'none';
-            sortedFamilyTx.forEach(tx => {
+            monthFamilyTx.forEach(tx => {
                 const isIncome = tx.flowType === 'INCOME';
                 const sign = isIncome ? '+' : '-';
                 const badgeClass = isIncome ? 'badge badge-income' : 'badge badge-expense';
@@ -1279,13 +1460,16 @@
             });
         }
 
-        familyTransactions.forEach(tx => {
-            const multiplier = tx.flowType === 'INCOME' ? 1 : -1;
-            const delta = tx.amount * multiplier;
-            if (tx.person === 'Mom') momBal += delta;
-            else if (tx.person === 'Brother') brotherBal += delta;
-            else if (tx.person === 'Self') selfBal += delta;
-        });
+        // Continuous carry-over balance (calculates cumulative net up to current selected month)
+        familyTransactions
+            .filter(tx => tx.date && tx.date <= endOfSelectedMonth)
+            .forEach(tx => {
+                const multiplier = tx.flowType === 'INCOME' ? 1 : -1;
+                const delta = tx.amount * multiplier;
+                if (tx.person === 'Mom') momBal += delta;
+                else if (tx.person === 'Brother') brotherBal += delta;
+                else if (tx.person === 'Self') selfBal += delta;
+            });
 
         momBalanceDisplay.textContent = formatCurrency(momBal);
         brotherBalanceDisplay.textContent = formatCurrency(brotherBal);
@@ -1298,18 +1482,16 @@
         let allTimeTotal = 0;
 
         const sortedEarnings = [...sideEarnings].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const monthEarnings = sortedEarnings.filter(item => item.date && item.date.startsWith(selectedMonth));
+
+        earningCountBadge.textContent = `${monthEarnings.length} records`;
         earningTransactionList.innerHTML = '';
 
-        if (sortedEarnings.length === 0) {
+        if (monthEarnings.length === 0) {
             earningEmptyMessage.style.display = 'block';
         } else {
             earningEmptyMessage.style.display = 'none';
-            sortedEarnings.forEach(item => {
-                allTimeTotal += item.amount;
-                if (item.date && item.date.startsWith(selectedMonth)) {
-                    monthlyTotal += item.amount;
-                }
-
+            monthEarnings.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="date-cell">${formatToDMY(item.date)}</td>
@@ -1324,12 +1506,20 @@
             });
         }
 
+        sideEarnings.forEach(item => {
+            allTimeTotal += item.amount;
+            if (item.date && item.date.startsWith(selectedMonth)) {
+                monthlyTotal += item.amount;
+            }
+        });
+
         earningMonthlyTotal.textContent = formatCurrency(monthlyTotal);
         earningAllTimeTotal.textContent = formatCurrency(allTimeTotal);
     }
 
     monthFilter.addEventListener('change', () => {
         renderDashboard();
+        renderFamilyDashboard();
         renderEarningsDashboard();
     });
 </script>
