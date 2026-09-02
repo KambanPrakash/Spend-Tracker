@@ -69,6 +69,12 @@
 
         .header-title-wrap {
             display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .header-top-row {
+            display: flex;
             align-items: center;
             gap: 0.5rem;
         }
@@ -79,6 +85,18 @@
             letter-spacing: -0.5px;
         }
 
+        .live-date-badge {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(0, 122, 255, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+        }
+
         .sync-badge {
             font-size: 0.7rem;
             font-weight: 700;
@@ -86,7 +104,7 @@
             color: #15803d;
             padding: 0.25rem 0.5rem;
             border-radius: 999px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.3rem;
         }
@@ -392,7 +410,7 @@
             -webkit-appearance: none;
         }
 
-        /* Improved Passbook Header & Alignment */
+        /* Fully Balanced Non-Clipping Passbook Header */
         .passbook-card {
             background: var(--card-bg);
             border-radius: 16px;
@@ -404,7 +422,7 @@
         }
 
         .passbook-header {
-            padding: 0.95rem 1rem;
+            padding: 0.85rem 0.95rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -412,7 +430,7 @@
             user-select: none;
             background: #ffffff;
             transition: background 0.15s ease;
-            gap: 0.75rem;
+            gap: 0.4rem;
         }
 
         .passbook-header:hover {
@@ -420,23 +438,20 @@
         }
 
         .passbook-title-wrap {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            flex-wrap: nowrap;
-            white-space: nowrap;
-            overflow: hidden;
+            gap: 0.4rem;
+            flex: 1;
+            min-width: 0; /* Allows text to fit cleanly */
         }
 
         .passbook-icon {
             font-size: 1.15rem;
             flex-shrink: 0;
-            display: flex;
-            align-items: center;
         }
 
         .passbook-title {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 700;
             color: var(--text-main);
             letter-spacing: -0.2px;
@@ -444,27 +459,23 @@
         }
 
         .passbook-count {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             background: #e5e5ea;
             color: #48484a;
-            padding: 0.18rem 0.55rem;
+            padding: 0.15rem 0.45rem;
             border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1.2;
             flex-shrink: 0;
             white-space: nowrap;
         }
 
         .passbook-toggle-btn {
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: var(--primary);
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.25rem;
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -472,7 +483,7 @@
         .passbook-arrow {
             transition: transform 0.25s ease;
             display: inline-block;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
         }
 
         .passbook-card.open .passbook-arrow {
@@ -665,8 +676,12 @@
 <div class="container">
     <header>
         <div class="header-title-wrap">
-            <h1>Spend Tracker</h1>
-            <div class="sync-badge"><div class="sync-dot"></div> Live Cloud Sync</div>
+            <div class="header-top-row">
+                <h1>Spend Tracker</h1>
+                <div class="sync-badge"><div class="sync-dot"></div> Live Cloud Sync</div>
+            </div>
+            <!-- Live Date Badge on Top -->
+            <div class="live-date-badge" id="liveDateTop">📅 Loading date...</div>
         </div>
         <div class="month-picker">
             <label for="monthFilter">Month</label>
@@ -839,8 +854,8 @@
         <div class="passbook-header" onclick="togglePassbook('spendPassbook')">
             <div class="passbook-title-wrap">
                 <span class="passbook-icon">📖</span>
-                <span class="passbook-title">Spends Passbook</span>
-                <span class="passbook-count" id="spendCountBadge">0 records</span>
+                <span class="passbook-title">Spends</span>
+                <span class="passbook-count" id="spendCountBadge">0 rec</span>
             </div>
             <div class="passbook-toggle-btn">
                 <span>View Passbook</span>
@@ -938,8 +953,8 @@
             <div class="passbook-header" onclick="togglePassbook('familyPassbook')">
                 <div class="passbook-title-wrap">
                     <span class="passbook-icon">🏠</span>
-                    <span class="passbook-title">Family Passbook</span>
-                    <span class="passbook-count" id="familyCountBadge">0 records</span>
+                    <span class="passbook-title">Family</span>
+                    <span class="passbook-count" id="familyCountBadge">0 rec</span>
                 </div>
                 <div class="passbook-toggle-btn">
                     <span>View Passbook</span>
@@ -1024,8 +1039,8 @@
             <div class="passbook-header" onclick="togglePassbook('earningPassbook')">
                 <div class="passbook-title-wrap">
                     <span class="passbook-icon">💼</span>
-                    <span class="passbook-title">Earnings Passbook</span>
-                    <span class="passbook-count" id="earningCountBadge">0 records</span>
+                    <span class="passbook-title">Earnings</span>
+                    <span class="passbook-count" id="earningCountBadge">0 rec</span>
                 </div>
                 <div class="passbook-toggle-btn">
                     <span>View Passbook</span>
@@ -1091,6 +1106,7 @@
     const monthFilter = document.getElementById('monthFilter');
     const transactionList = document.getElementById('transactionList');
     const emptyMessage = document.getElementById('emptyMessage');
+    const liveDateTop = document.getElementById('liveDateTop');
 
     const settlementBox = document.getElementById('settlementBox');
     const isSettledCheckbox = document.getElementById('isSettled');
@@ -1217,12 +1233,18 @@
         return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
     }
 
+    // Set Live Top Badge & Input Defaults
     const currentToday = getTodayLocalDate();
     monthFilter.value = getTodayLocalMonth();
     document.getElementById('date').value = currentToday;
     document.getElementById('familyDate').value = currentToday;
     document.getElementById('earningDate').value = currentToday;
     settledDateInput.value = currentToday;
+
+    // Display formatted live date on top banner
+    if (liveDateTop) {
+        liveDateTop.textContent = `📅 Today: ${formatToDMY(currentToday)}`;
+    }
 
     function checkSettlementFieldVisibility() {
         const cat = categorySelect.value;
@@ -1448,7 +1470,7 @@
             }
         }
 
-        spendCountBadge.textContent = `${displayList.length} records`;
+        spendCountBadge.textContent = `${displayList.length} rec`;
         transactionList.innerHTML = '';
 
         if (displayList.length === 0) {
@@ -1602,7 +1624,7 @@
             });
         }
 
-        familyCountBadge.textContent = `${monthFamilyTx.length} records`;
+        familyCountBadge.textContent = `${monthFamilyTx.length} rec`;
 
         let momBal = INITIAL_MOM_BALANCE;
         let brotherBal = INITIAL_BROTHER_BALANCE;
@@ -1634,7 +1656,7 @@
             monthEarnings = monthEarnings.filter(item => item.source === currentEarningFilter);
         }
 
-        earningCountBadge.textContent = `${monthEarnings.length} records`;
+        earningCountBadge.textContent = `${monthEarnings.length} rec`;
         earningTransactionList.innerHTML = '';
 
         if (monthEarnings.length === 0) {
