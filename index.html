@@ -397,14 +397,14 @@
             background: var(--card-bg);
             border-radius: 16px;
             border: 1px solid var(--border-color);
-            margin-top: 1rem;
+            margin-top: 1.1rem;
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             width: 100%;
         }
 
         .passbook-header {
-            padding: 0.95rem 1.1rem;
+            padding: 0.9rem 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -412,6 +412,7 @@
             user-select: none;
             background: #ffffff;
             transition: background 0.15s ease;
+            gap: 0.5rem;
         }
 
         .passbook-header:hover {
@@ -421,17 +422,21 @@
         .passbook-title-wrap {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.55rem;
+            flex-wrap: wrap;
         }
 
         .passbook-icon {
             font-size: 1.15rem;
+            display: flex;
+            align-items: center;
         }
 
         .passbook-title {
             font-size: 0.95rem;
             font-weight: 700;
             color: var(--text-main);
+            letter-spacing: -0.2px;
         }
 
         .passbook-count {
@@ -439,22 +444,28 @@
             font-weight: 700;
             background: #e5e5ea;
             color: #48484a;
-            padding: 0.15rem 0.45rem;
+            padding: 0.18rem 0.55rem;
             border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
         }
 
         .passbook-toggle-btn {
-            font-size: 0.82rem;
+            font-size: 0.84rem;
             font-weight: 700;
             color: var(--primary);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.35rem;
+            white-space: nowrap;
         }
 
         .passbook-arrow {
             transition: transform 0.25s ease;
             display: inline-block;
+            font-size: 0.75rem;
         }
 
         .passbook-card.open .passbook-arrow {
@@ -463,7 +474,7 @@
 
         .passbook-content {
             display: none;
-            padding: 0 1rem 1rem 1rem;
+            padding: 0.75rem 1rem 1rem 1rem;
             border-top: 1px solid var(--border-color);
             animation: fadeIn 0.2s ease-in-out;
         }
@@ -477,13 +488,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Filter Chips Bar */
+        .filter-bar {
+            display: flex;
+            gap: 0.4rem;
+            overflow-x: auto;
+            padding-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            border: 1px solid var(--border-color);
+            background: #f2f2f7;
+            color: var(--text-main);
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
         .table-responsive {
             display: block;
             width: 100%;
             max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            margin-top: 0.75rem;
         }
 
         table {
@@ -539,6 +582,11 @@
             font-weight: 600;
         }
 
+        .carried-row {
+            background: #fffdf5;
+            font-style: italic;
+        }
+
         .action-cell { white-space: nowrap; }
 
         .btn-action {
@@ -555,9 +603,9 @@
 
         .empty-state {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 1.8rem 1rem;
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
         }
 
         .partition-section-container {
@@ -682,7 +730,7 @@
         </div>
     </div>
 
-    <!-- Debt Breakdown (With Automatic Carry Forward) -->
+    <!-- Debt Breakdown -->
     <div class="section-title">Dues & Borrowing (Pending Balance + Carried)</div>
     <div class="debt-summary-grid">
         <div class="card lent-card">
@@ -760,7 +808,6 @@
                     <input type="number" id="amount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required>
                 </div>
 
-                <!-- Settlement Checkbox & Received Date Container -->
                 <div class="settlement-box" id="settlementBox">
                     <label class="checkbox-label">
                         <input type="checkbox" id="isSettled">
@@ -794,6 +841,17 @@
             </div>
         </div>
         <div class="passbook-content">
+            <!-- Filter Chips for Spends -->
+            <div class="filter-bar" id="spendFilters">
+                <button class="filter-chip active" data-filter="ALL" onclick="setSpendFilter('ALL', this)">All</button>
+                <button class="filter-chip" data-filter="Food" onclick="setSpendFilter('Food', this)">Food</button>
+                <button class="filter-chip" data-filter="Travel" onclick="setSpendFilter('Travel', this)">Travel</button>
+                <button class="filter-chip" data-filter="Shopping" onclick="setSpendFilter('Shopping', this)">Shopping</button>
+                <button class="filter-chip" data-filter="Dues" onclick="setSpendFilter('Dues', this)">Dues/Lent</button>
+                <button class="filter-chip" data-filter="UPI" onclick="setSpendFilter('UPI', this)">UPI</button>
+                <button class="filter-chip" data-filter="Credit Card" onclick="setSpendFilter('Credit Card', this)">Card</button>
+            </div>
+
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -809,7 +867,7 @@
                     <tbody id="transactionList"></tbody>
                 </table>
             </div>
-            <div id="emptyMessage" class="empty-state" style="display: none;">No records logged for this month.</div>
+            <div id="emptyMessage" class="empty-state" style="display: none;">No records match this filter.</div>
         </div>
     </div>
 
@@ -883,6 +941,14 @@
                 </div>
             </div>
             <div class="passbook-content">
+                <!-- Filter Chips for Family -->
+                <div class="filter-bar" id="familyFilters">
+                    <button class="filter-chip active" onclick="setFamilyFilter('ALL', this)">All</button>
+                    <button class="filter-chip" onclick="setFamilyFilter('Mom', this)">Mom</button>
+                    <button class="filter-chip" onclick="setFamilyFilter('Brother', this)">Brother</button>
+                    <button class="filter-chip" onclick="setFamilyFilter('Self', this)">Me (Self)</button>
+                </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -898,7 +964,7 @@
                         <tbody id="familyTransactionList"></tbody>
                     </table>
                 </div>
-                <div id="familyEmptyMessage" class="empty-state" style="display: none;">No family transactions recorded yet.</div>
+                <div id="familyEmptyMessage" class="empty-state" style="display: none;">No records match this filter.</div>
             </div>
         </div>
     </div>
@@ -962,6 +1028,14 @@
                 </div>
             </div>
             <div class="passbook-content">
+                <!-- Filter Chips for Earnings -->
+                <div class="filter-bar" id="earningFilters">
+                    <button class="filter-chip active" onclick="setEarningFilter('ALL', this)">All</button>
+                    <button class="filter-chip" onclick="setEarningFilter('Camera Selling', this)">Camera Selling</button>
+                    <button class="filter-chip" onclick="setEarningFilter('Camera Rental', this)">Rental</button>
+                    <button class="filter-chip" onclick="setEarningFilter('Other Inflows', this)">Other</button>
+                </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -976,7 +1050,7 @@
                         <tbody id="earningTransactionList"></tbody>
                     </table>
                 </div>
-                <div id="earningEmptyMessage" class="empty-state" style="display: none;">No side earnings recorded yet.</div>
+                <div id="earningEmptyMessage" class="empty-state" style="display: none;">No records match this filter.</div>
             </div>
         </div>
     </div>
@@ -998,6 +1072,11 @@
     let expenses = [];
     let familyTransactions = [];
     let sideEarnings = [];
+
+    // Filter states
+    let currentSpendFilter = 'ALL';
+    let currentFamilyFilter = 'ALL';
+    let currentEarningFilter = 'ALL';
 
     // --- DOM Elements ---
     const form = document.getElementById('spendForm');
@@ -1060,7 +1139,6 @@
     const ccUsagePercentEl = document.getElementById('ccUsagePercent');
     const ccProgressFill = document.getElementById('ccProgressFill');
 
-    // Passbook Badges
     const spendCountBadge = document.getElementById('spendCountBadge');
     const familyCountBadge = document.getElementById('familyCountBadge');
     const earningCountBadge = document.getElementById('earningCountBadge');
@@ -1074,6 +1152,28 @@
         }
     }
 
+    // Filter Trigger Functions
+    function setSpendFilter(filter, el) {
+        currentSpendFilter = filter;
+        document.querySelectorAll('#spendFilters .filter-chip').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        renderDashboard();
+    }
+
+    function setFamilyFilter(filter, el) {
+        currentFamilyFilter = filter;
+        document.querySelectorAll('#familyFilters .filter-chip').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        renderFamilyDashboard();
+    }
+
+    function setEarningFilter(filter, el) {
+        currentEarningFilter = filter;
+        document.querySelectorAll('#earningFilters .filter-chip').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        renderEarningsDashboard();
+    }
+
     function formatCurrency(amount) {
         return '₹' + Number(amount).toLocaleString('en-IN', {
             minimumFractionDigits: 2,
@@ -1081,7 +1181,7 @@
         });
     }
 
-    // --- ACCURATE LOCAL TIME HELPER (Prevents UTC Yesterday Glitch) ---
+    // Local Date Helpers
     function getTodayLocalDate() {
         const d = new Date();
         const year = d.getFullYear();
@@ -1109,7 +1209,13 @@
         return `${formattedDay} ${monthText} ${year}`;
     }
 
-    // Set Live Local Date Across All Fields
+    function getPreviousMonthName(yearMonthStr) {
+        const [y, m] = yearMonthStr.split('-').map(Number);
+        const d = new Date(y, m - 2, 1);
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
     const currentToday = getTodayLocalDate();
     monthFilter.value = getTodayLocalMonth();
     document.getElementById('date').value = currentToday;
@@ -1282,12 +1388,10 @@
     function renderDashboard() {
         const selectedMonth = monthFilter.value;
 
-        // Current Month Entries
         const currentMonthExpenses = expenses
             .filter(exp => exp.date && exp.date.startsWith(selectedMonth))
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // Prior Carry-Forward Dues (Unsettled dues from earlier months)
         const priorLentUnsettled = expenses
             .filter(exp => exp.date && exp.date < (selectedMonth + '-01') && exp.category === 'Given (To Receive)' && !exp.isSettled)
             .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1310,43 +1414,49 @@
 
         const payTotals = { 'UPI': 0, 'Credit Card': 0, 'Cash': 0 };
 
-        transactionList.innerHTML = '';
+        currentMonthExpenses.forEach(exp => {
+            if (subTotals.hasOwnProperty(exp.category)) {
+                subTotals[exp.category] += exp.amount;
+                overallExpenseTotal += exp.amount;
+            }
+            if (exp.category === 'Given (To Receive)' && !exp.isSettled) {
+                monthLentTotal += exp.amount;
+            }
+            if (exp.category === 'Taken (Need to Repay)' && !exp.isSettled) {
+                monthBorrowTotal += exp.amount;
+            }
+            const method = exp.paymentMethod || 'UPI';
+            if (payTotals.hasOwnProperty(method)) {
+                payTotals[method] += exp.amount;
+            }
+        });
 
-        // Combine current month expenses and carried over dues into Passbook
-        const displayList = [
+        // Combined Passbook list with carried dues
+        let displayList = [
             ...currentMonthExpenses,
             ...priorLentUnsettled.map(item => ({ ...item, isCarried: true })),
             ...priorBorrowUnsettled.map(item => ({ ...item, isCarried: true }))
         ];
 
+        // Apply Filter
+        if (currentSpendFilter !== 'ALL') {
+            if (currentSpendFilter === 'Dues') {
+                displayList = displayList.filter(e => e.category === 'Given (To Receive)' || e.category === 'Taken (Need to Repay)');
+            } else if (['UPI', 'Credit Card', 'Cash'].includes(currentSpendFilter)) {
+                displayList = displayList.filter(e => (e.paymentMethod || 'UPI') === currentSpendFilter);
+            } else {
+                displayList = displayList.filter(e => e.category === currentSpendFilter);
+            }
+        }
+
         spendCountBadge.textContent = `${displayList.length} records`;
+        transactionList.innerHTML = '';
 
         if (displayList.length === 0) {
             emptyMessage.style.display = 'block';
         } else {
             emptyMessage.style.display = 'none';
             displayList.forEach(exp => {
-                // Only count in spending totals if inside current month
-                if (!exp.isCarried) {
-                    if (subTotals.hasOwnProperty(exp.category)) {
-                        subTotals[exp.category] += exp.amount;
-                        overallExpenseTotal += exp.amount;
-                    }
-
-                    if (exp.category === 'Given (To Receive)' && !exp.isSettled) {
-                        monthLentTotal += exp.amount;
-                    }
-
-                    if (exp.category === 'Taken (Need to Repay)' && !exp.isSettled) {
-                        monthBorrowTotal += exp.amount;
-                    }
-
-                    const method = exp.paymentMethod || 'UPI';
-                    if (payTotals.hasOwnProperty(method)) {
-                        payTotals[method] += exp.amount;
-                    }
-                }
-
                 let badgeClass = 'badge';
                 if (exp.category === 'Given (To Receive)') badgeClass += ' badge-lent';
                 if (exp.category === 'Taken (Need to Repay)') badgeClass += ' badge-borrow';
@@ -1380,13 +1490,11 @@
             });
         }
 
-        // Totals
         totalEl.textContent = formatCurrency(overallExpenseTotal);
         for (const [category, el] of Object.entries(categoryTotals)) {
             el.textContent = formatCurrency(subTotals[category] || 0);
         }
 
-        // Carry-Forward Dues Display
         debtTotals['Given (To Receive)'].textContent = formatCurrency(carriedLentTotal + monthLentTotal);
         lentCarriedSub.textContent = `Carried: ${formatCurrency(carriedLentTotal)} | This Month: ${formatCurrency(monthLentTotal)}`;
 
@@ -1421,21 +1529,58 @@
 
     function renderFamilyDashboard() {
         const selectedMonth = monthFilter.value;
+        const startOfCurrentMonth = selectedMonth + '-01';
         const endOfSelectedMonth = selectedMonth + '-31';
 
-        let momBal = INITIAL_MOM_BALANCE;
-        let brotherBal = INITIAL_BROTHER_BALANCE;
-        let selfBal = INITIAL_SELF_BALANCE;
+        // Calculate Carried Forward Balances from months prior to current
+        let priorMomBal = INITIAL_MOM_BALANCE;
+        let priorBrotherBal = INITIAL_BROTHER_BALANCE;
+        let priorSelfBal = INITIAL_SELF_BALANCE;
 
-        // Transactions filtered to selected month for passbook display
-        const monthFamilyTx = familyTransactions
+        familyTransactions
+            .filter(tx => tx.date && tx.date < startOfCurrentMonth)
+            .forEach(tx => {
+                const delta = tx.amount * (tx.flowType === 'INCOME' ? 1 : -1);
+                if (tx.person === 'Mom') priorMomBal += delta;
+                else if (tx.person === 'Brother') priorBrotherBal += delta;
+                else if (tx.person === 'Self') priorSelfBal += delta;
+            });
+
+        // Current Month Transactions
+        let monthFamilyTx = familyTransactions
             .filter(tx => tx.date && tx.date.startsWith(selectedMonth))
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        familyCountBadge.textContent = `${monthFamilyTx.length} records`;
-        familyTransactionList.innerHTML = '';
+        // Filter by person
+        if (currentFamilyFilter !== 'ALL') {
+            monthFamilyTx = monthFamilyTx.filter(tx => tx.person === currentFamilyFilter);
+        }
 
-        if (monthFamilyTx.length === 0) {
+        familyTransactionList.innerHTML = '';
+        const prevMonthLabel = getPreviousMonthName(selectedMonth);
+
+        // Render Carried Forward Rows at top of passbook if balance exists
+        const peopleList = currentFamilyFilter === 'ALL' ? ['Brother', 'Mom', 'Self'] : [currentFamilyFilter];
+        peopleList.forEach(p => {
+            const bal = (p === 'Brother' ? priorBrotherBal : (p === 'Mom' ? priorMomBal : priorSelfBal));
+            if (bal !== 0) {
+                const isPositive = bal > 0;
+                const sign = isPositive ? '+' : '-';
+                const tr = document.createElement('tr');
+                tr.className = 'carried-row';
+                tr.innerHTML = `
+                    <td class="date-cell"><span class="badge badge-carried">${prevMonthLabel}</span></td>
+                    <td><strong>${p}</strong></td>
+                    <td><span class="badge" style="background:#fef3c7; color:#b45309;">Opening Balance</span></td>
+                    <td><em>Carried forward from ${prevMonthLabel}</em></td>
+                    <td style="font-weight: 700; color: ${isPositive ? '#15803d' : '#b91c1c'};">${sign} ${formatCurrency(Math.abs(bal))}</td>
+                    <td class="action-cell"><span style="color: var(--text-muted); font-size: 0.75rem;">Carried</span></td>
+                `;
+                familyTransactionList.appendChild(tr);
+            }
+        });
+
+        if (monthFamilyTx.length === 0 && peopleList.every(p => (p === 'Brother' ? priorBrotherBal : (p === 'Mom' ? priorMomBal : priorSelfBal)) === 0)) {
             familyEmptyMessage.style.display = 'block';
         } else {
             familyEmptyMessage.style.display = 'none';
@@ -1460,12 +1605,17 @@
             });
         }
 
-        // Continuous carry-over balance (calculates cumulative net up to current selected month)
+        familyCountBadge.textContent = `${monthFamilyTx.length} records`;
+
+        // Calculate Overall Cumulative Balances up to selected month
+        let momBal = INITIAL_MOM_BALANCE;
+        let brotherBal = INITIAL_BROTHER_BALANCE;
+        let selfBal = INITIAL_SELF_BALANCE;
+
         familyTransactions
             .filter(tx => tx.date && tx.date <= endOfSelectedMonth)
             .forEach(tx => {
-                const multiplier = tx.flowType === 'INCOME' ? 1 : -1;
-                const delta = tx.amount * multiplier;
+                const delta = tx.amount * (tx.flowType === 'INCOME' ? 1 : -1);
                 if (tx.person === 'Mom') momBal += delta;
                 else if (tx.person === 'Brother') brotherBal += delta;
                 else if (tx.person === 'Self') selfBal += delta;
@@ -1482,7 +1632,11 @@
         let allTimeTotal = 0;
 
         const sortedEarnings = [...sideEarnings].sort((a, b) => new Date(b.date) - new Date(a.date));
-        const monthEarnings = sortedEarnings.filter(item => item.date && item.date.startsWith(selectedMonth));
+        let monthEarnings = sortedEarnings.filter(item => item.date && item.date.startsWith(selectedMonth));
+
+        if (currentEarningFilter !== 'ALL') {
+            monthEarnings = monthEarnings.filter(item => item.source === currentEarningFilter);
+        }
 
         earningCountBadge.textContent = `${monthEarnings.length} records`;
         earningTransactionList.innerHTML = '';
