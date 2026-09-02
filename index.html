@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
+    <!-- iOS / Safari App Optimization -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SpendTracker">
     
     <title>Personal Spend & Income Tracker</title>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -327,6 +329,35 @@
             background-color: #fff;
         }
 
+        /* Settlement Field Box */
+        .settlement-box {
+            background: #f0fdf4;
+            border: 1px dashed #86efac;
+            padding: 0.85rem;
+            border-radius: 12px;
+            margin-bottom: 0.95rem;
+            display: none;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: #16a34a;
+            cursor: pointer;
+            -webkit-appearance: checkbox;
+            appearance: checkbox;
+        }
+
         .btn-group {
             display: flex;
             gap: 0.5rem;
@@ -410,9 +441,18 @@
         .badge-payment { background: #ede9fe; color: #5b21b6; }
         .badge-lent { background: #dcfce7; color: #166534; }
         .badge-borrow { background: #fef3c7; color: #92400e; }
+        .badge-settled { background: #e0e7ff; color: #3730a3; text-decoration: line-through; }
         .badge-income { background: #dcfce7; color: #15803d; }
         .badge-expense { background: #fee2e2; color: #b91c1c; }
         .badge-earning { background: #ccfbf1; color: #0f766e; }
+
+        .settled-note {
+            font-size: 0.72rem;
+            color: #16a34a;
+            display: block;
+            margin-top: 2px;
+            font-weight: 600;
+        }
 
         .action-cell { white-space: nowrap; }
 
@@ -494,6 +534,7 @@
         </div>
     </header>
 
+    <!-- Credit Card Tracker -->
     <div class="section-title">Credit Card Limit & Balance</div>
     <div class="cc-tracker-card">
         <div class="cc-header">
@@ -519,6 +560,7 @@
         </div>
     </div>
 
+    <!-- Category Totals -->
     <div class="section-title">Expense Category Breakdown</div>
     <div class="summary-grid">
         <div class="card total">
@@ -555,7 +597,8 @@
         </div>
     </div>
 
-    <div class="section-title">Dues & Borrowing (Lent / Owed)</div>
+    <!-- Debt Breakdown -->
+    <div class="section-title">Dues & Borrowing (Pending Balance)</div>
     <div class="debt-summary-grid">
         <div class="card lent-card">
             <h3>Given (To Receive)</h3>
@@ -567,6 +610,7 @@
         </div>
     </div>
 
+    <!-- Payment Mode Totals -->
     <div class="section-title">Payment Mode Breakdown</div>
     <div class="payment-summary-grid">
         <div class="card payment-card">
@@ -627,6 +671,18 @@
                     <label for="amount">Amount (₹)</label>
                     <input type="number" id="amount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00" required>
                 </div>
+
+                <!-- Settlement Checkbox & Received Date Container -->
+                <div class="settlement-box" id="settlementBox">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="isSettled">
+                        <span id="settledCheckboxLabel">Mark as Received / Settled</span>
+                    </label>
+                    <div id="settledDateGroup" style="display: none; margin-top: 0.5rem;">
+                        <label for="settledDate" style="font-size: 0.78rem;">Received / Settled Date</label>
+                        <input type="date" id="settledDate">
+                    </div>
+                </div>
                 
                 <div class="btn-group">
                     <button type="submit" class="btn-submit" id="submitBtn">Save Entry</button>
@@ -656,6 +712,7 @@
         </section>
     </div>
 
+    <!-- FAMILY WALLET SECTION -->
     <div class="partition-section-container">
         <h1 style="margin-bottom: 0.35rem;">Family Balance Tracker</h1>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.1rem;">
@@ -734,6 +791,7 @@
         </div>
     </div>
 
+    <!-- SIDE EARNINGS SECTION -->
     <div class="partition-section-container">
         <h1 style="margin-bottom: 0.35rem;">Side Income & Extra Earnings</h1>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.1rem;">
@@ -824,9 +882,17 @@
     const submitBtn = document.getElementById('submitBtn');
     const cancelBtn = document.getElementById('cancelBtn');
     const editIdInput = document.getElementById('editId');
+    const categorySelect = document.getElementById('category');
     const monthFilter = document.getElementById('monthFilter');
     const transactionList = document.getElementById('transactionList');
     const emptyMessage = document.getElementById('emptyMessage');
+
+    // Settlement Elements
+    const settlementBox = document.getElementById('settlementBox');
+    const isSettledCheckbox = document.getElementById('isSettled');
+    const settledDateGroup = document.getElementById('settledDateGroup');
+    const settledDateInput = document.getElementById('settledDate');
+    const settledCheckboxLabel = document.getElementById('settledCheckboxLabel');
 
     const familyForm = document.getElementById('familyForm');
     const familyTransactionList = document.getElementById('familyTransactionList');
@@ -876,7 +942,7 @@
         });
     }
 
-    // --- ACCURATE LOCAL TIME HELPER (Fixes UTC/Timezone Yesterday Glitch) ---
+    // --- ACCURATE LOCAL TIME HELPER ---
     function getTodayLocalDate() {
         const d = new Date();
         const year = d.getFullYear();
@@ -905,12 +971,42 @@
         return `${formattedDay} ${monthText} ${year}`;
     }
 
-    // Set Live Local Date across all taps on load
+    // Initialize Dates
     const currentToday = getTodayLocalDate();
     monthFilter.value = getTodayLocalMonth();
     document.getElementById('date').value = currentToday;
     document.getElementById('familyDate').value = currentToday;
     document.getElementById('earningDate').value = currentToday;
+    settledDateInput.value = currentToday;
+
+    // Toggle Settlement visibility
+    function checkSettlementFieldVisibility() {
+        const cat = categorySelect.value;
+        const isDebt = (cat === 'Given (To Receive)' || cat === 'Taken (Need to Repay)');
+        
+        if (isDebt && editIdInput.value) {
+            settlementBox.style.display = 'block';
+            if (cat === 'Given (To Receive)') {
+                settledCheckboxLabel.textContent = 'Received money back (Mark Settled)';
+            } else {
+                settledCheckboxLabel.textContent = 'Repaid money back (Mark Settled)';
+            }
+        } else {
+            settlementBox.style.display = 'none';
+            isSettledCheckbox.checked = false;
+            settledDateGroup.style.display = 'none';
+        }
+    }
+
+    categorySelect.addEventListener('change', checkSettlementFieldVisibility);
+    isSettledCheckbox.addEventListener('change', () => {
+        if (isSettledCheckbox.checked) {
+            settledDateGroup.style.display = 'block';
+            if (!settledDateInput.value) settledDateInput.value = getTodayLocalDate();
+        } else {
+            settledDateGroup.style.display = 'none';
+        }
+    });
 
     // --- REALTIME SYNC LISTENERS ---
     db.ref('expenses').on('value', snapshot => {
@@ -937,7 +1033,10 @@
         formTitle.textContent = 'Add Expense Entry';
         submitBtn.textContent = 'Save Entry';
         cancelBtn.style.display = 'none';
+        settlementBox.style.display = 'none';
+        settledDateGroup.style.display = 'none';
         document.getElementById('date').value = getTodayLocalDate();
+        settledDateInput.value = getTodayLocalDate();
     }
 
     function editExpense(id) {
@@ -951,9 +1050,21 @@
         document.getElementById('purpose').value = item.purpose;
         document.getElementById('amount').value = item.amount;
 
+        // Settlement state
+        isSettledCheckbox.checked = !!item.isSettled;
+        if (item.isSettled) {
+            settledDateGroup.style.display = 'block';
+            settledDateInput.value = item.settledDate || getTodayLocalDate();
+        } else {
+            settledDateGroup.style.display = 'none';
+            settledDateInput.value = getTodayLocalDate();
+        }
+
         formTitle.textContent = 'Edit Entry';
         submitBtn.textContent = 'Update Entry';
         cancelBtn.style.display = 'block';
+
+        checkSettlementFieldVisibility();
         document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -974,7 +1085,9 @@
             category: categoryVal,
             paymentMethod: paymentVal,
             purpose: purposeVal,
-            amount: amountVal
+            amount: amountVal,
+            isSettled: isSettledCheckbox.checked,
+            settledDate: isSettledCheckbox.checked ? settledDateInput.value : null
         };
 
         db.ref('expenses/' + id).set(entry);
@@ -1051,13 +1164,19 @@
         } else {
             emptyMessage.style.display = 'none';
             filteredExpenses.forEach(exp => {
+                // Category Totals
                 if (subTotals.hasOwnProperty(exp.category)) {
                     subTotals[exp.category] += exp.amount;
                     overallExpenseTotal += exp.amount;
                 }
+
+                // Dues - only add to active total if NOT settled
                 if (dues.hasOwnProperty(exp.category)) {
-                    dues[exp.category] += exp.amount;
+                    if (!exp.isSettled) {
+                        dues[exp.category] += exp.amount;
+                    }
                 }
+
                 const method = exp.paymentMethod || 'UPI';
                 if (payTotals.hasOwnProperty(method)) {
                     payTotals[method] += exp.amount;
@@ -1067,13 +1186,24 @@
                 if (exp.category === 'Given (To Receive)') badgeClass += ' badge-lent';
                 if (exp.category === 'Taken (Need to Repay)') badgeClass += ' badge-borrow';
 
+                let settledInfoHtml = '';
+                if (exp.isSettled) {
+                    badgeClass = 'badge badge-settled';
+                    settledInfoHtml = `<span class="settled-note">✓ Received: ${formatToDMY(exp.settledDate)}</span>`;
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="date-cell">${formatToDMY(exp.date)}</td>
-                    <td><span class="${badgeClass}">${exp.category}</span></td>
+                    <td>
+                        <span class="${badgeClass}">${exp.category}</span>
+                        ${settledInfoHtml}
+                    </td>
                     <td><span class="badge badge-payment">${method}</span></td>
                     <td>${exp.purpose}</td>
-                    <td style="font-weight: 600;">${formatCurrency(exp.amount)}</td>
+                    <td style="font-weight: 600; ${exp.isSettled ? 'text-decoration: line-through; color: #8e8e93;' : ''}">
+                        ${formatCurrency(exp.amount)}
+                    </td>
                     <td class="action-cell">
                         <button class="btn-action btn-edit" onclick="editExpense('${exp.id}')">Edit</button>
                         <button class="btn-action btn-delete" onclick="deleteExpense('${exp.id}')">Delete</button>
