@@ -122,7 +122,7 @@
             flex-wrap: wrap;
         }
 
-        /* Top Right My Account Balance Pill */
+        /* Top Right My Balance Pill */
         .top-account-pill {
             display: inline-flex;
             align-items: center;
@@ -450,6 +450,7 @@
             -webkit-appearance: none;
         }
 
+        /* 3-Column Passbook Header with Center Badge */
         .passbook-card {
             background: var(--card-bg);
             border-radius: 16px;
@@ -740,10 +741,10 @@
             <div class="sync-badge"><div class="sync-dot"></div> Live Cloud Sync</div>
         </div>
         
-        <!-- Controls: Top-Right My Account Balance + Month Selector -->
+        <!-- Controls: Top-Right My Balance + Month Selector -->
         <div class="header-right-controls">
-            <div class="top-account-pill" onclick="promptEditBaseBalance()" title="Click to update starting bank balance">
-                <span>Bank:</span>
+            <div class="top-account-pill" onclick="promptEditBaseBalance()" title="Click to update base balance">
+                <span>My Balance:</span>
                 <span class="acc-val" id="topAccountBalanceDisplay">₹0.00</span>
                 <span class="edit-bal-btn">✏️</span>
             </div>
@@ -967,7 +968,7 @@
                 </p>
             </div>
             <div class="combined-family-pool-badge" id="combinedFamilyTotalDisplay">
-                <span>Combined Pool:</span>
+                <span>Family Pool:</span>
                 <strong>₹0.00</strong>
             </div>
         </div>
@@ -982,7 +983,7 @@
                 <div class="balance" id="brotherBalanceDisplay">₹0.00</div>
             </div>
             <div class="family-card self">
-                <h3>My Balance (Side Income +)</h3>
+                <h3>My Balance</h3>
                 <div class="balance" id="selfBalanceDisplay">₹0.00</div>
             </div>
         </div>
@@ -1277,7 +1278,7 @@
     }
 
     function promptEditBaseBalance() {
-        const input = prompt("Enter your starting / current bank account balance (₹):", baseBankBalance);
+        const input = prompt("Enter your starting / base balance (₹):", baseBankBalance);
         if (input !== null && !isNaN(parseFloat(input))) {
             baseBankBalance = parseFloat(input);
             localStorage.setItem('user_base_bank_balance', baseBankBalance);
@@ -1286,7 +1287,7 @@
         }
     }
 
-    // Load base balance from Firebase if available
+    // Load base balance from Firebase
     db.ref('settings/baseBankBalance').on('value', snapshot => {
         const val = snapshot.val();
         if (val !== null) {
@@ -1666,16 +1667,10 @@
         const startOfCurrentMonth = selectedMonth + '-01';
         const endOfSelectedMonth = selectedMonth + '-31';
 
+        // 1. Prior balances for Mom & Brother from family tx only
         let priorMomBal = INITIAL_MOM_BALANCE;
         let priorBrotherBal = INITIAL_BROTHER_BALANCE;
-        let priorSelfBal = INITIAL_SELF_BALANCE;
-
-        // Add side earnings into My Balance before current month
-        sideEarnings
-            .filter(e => e.date && e.date < startOfCurrentMonth)
-            .forEach(e => {
-                priorSelfBal += e.amount;
-            });
+        let priorSelfBal = baseBankBalance;
 
         familyTransactions
             .filter(tx => tx.date && tx.date < startOfCurrentMonth)
@@ -1684,6 +1679,24 @@
                 if (tx.person === 'Mom') priorMomBal += delta;
                 else if (tx.person === 'Brother') priorBrotherBal += delta;
                 else if (tx.person === 'Self') priorSelfBal += delta;
+            });
+
+        // Add prior side earnings into My Balance
+        sideEarnings
+            .filter(e => e.date && e.date < startOfCurrentMonth)
+            .forEach(e => {
+                priorSelfBal += e.amount;
+            });
+
+        // Deduct prior personal UPI spends from My Balance only
+        expenses
+            .filter(e => e.date && e.date < startOfCurrentMonth && (e.paymentMethod || 'UPI') === 'UPI' && !e.category.includes('Money Taken'))
+            .forEach(e => {
+                priorSelfBal -= e.amount;
+                // If money was given and later received, re-credit
+                if (e.isSettled && e.settledDate && e.settledDate < startOfCurrentMonth) {
+                    priorSelfBal += e.amount;
+                }
             });
 
         let monthFamilyTx = familyTransactions
@@ -1746,18 +1759,12 @@
 
         familyCountBadge.textContent = `${monthFamilyTx.length} rec`;
 
-        // Calculate Overall Cumulative Balances up to selected month (Side Income Added into My Balance)
+        // Cumulative Balances calculation up to end of selected month
         let momBal = INITIAL_MOM_BALANCE;
         let brotherBal = INITIAL_BROTHER_BALANCE;
-        let selfBal = INITIAL_SELF_BALANCE;
+        let selfBal = baseBankBalance;
 
-        // Auto add side earnings into My Balance
-        sideEarnings
-            .filter(e => e.date && e.date <= endOfSelectedMonth)
-            .forEach(e => {
-                selfBal += e.amount;
-            });
-
+        // Family Transactions
         familyTransactions
             .filter(tx => tx.date && tx.date <= endOfSelectedMonth)
             .forEach(tx => {
@@ -1767,30 +1774,34 @@
                 else if (tx.person === 'Self') selfBal += delta;
             });
 
+        // Auto-add all Side Income into My Balance
+        sideEarnings
+            .filter(e => e.date && e.date <= endOfSelectedMonth)
+            .forEach(e => {
+                selfBal += e.amount;
+            });
+
+        // Deduct UPI personal expenses exclusively from My Balance (Mom and Brother remain untouched)
+        expenses
+            .filter(e => e.date && e.date <= endOfSelectedMonth && (e.paymentMethod || 'UPI') === 'UPI' && !e.category.includes('Money Taken'))
+            .forEach(e => {
+                selfBal -= e.amount;
+                // If money was given to someone and marked settled/received, add back
+                if (e.isSettled && e.settledDate && e.settledDate <= endOfSelectedMonth) {
+                    selfBal += e.amount;
+                }
+            });
+
         momBalanceDisplay.textContent = formatCurrency(momBal);
         brotherBalanceDisplay.textContent = formatCurrency(brotherBal);
         selfBalanceDisplay.textContent = formatCurrency(selfBal);
 
+        // Synchronize Top-Right Header Balance exactly with My Balance
+        topAccountBalanceDisplay.textContent = formatCurrency(selfBal);
+
         // Combined Family Pool Total (Mom + Brother + My Balance)
         const combinedPoolTotal = momBal + brotherBal + selfBal;
         combinedFamilyTotalDisplay.innerHTML = `<span>Family Pool:</span> <strong>${formatCurrency(combinedPoolTotal)}</strong>`;
-
-        // Top Right Live Account Balance (Base Bank + Side Earnings + Cash Inflows - UPI/Bank Spends)
-        let totalUpiBankSpends = 0;
-        let totalSideEarningsAllTime = 0;
-
-        expenses.forEach(e => {
-            if ((e.paymentMethod || 'UPI') === 'UPI' && !e.category.includes('Money Taken')) {
-                totalUpiBankSpends += e.amount;
-            }
-        });
-
-        sideEarnings.forEach(e => {
-            totalSideEarningsAllTime += e.amount;
-        });
-
-        const liveMyAccountBalance = baseBankBalance + totalSideEarningsAllTime + selfBal - totalUpiBankSpends;
-        topAccountBalanceDisplay.textContent = formatCurrency(liveMyAccountBalance);
     }
 
     function renderEarningsDashboard() {
