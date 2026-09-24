@@ -57,24 +57,24 @@
             padding: 0;
         }
 
-        /* Header Layout: Row 1 = Title + Cloud Sync right next to it */
+        /* Top Header Structure */
         header {
             margin-bottom: 1.1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
+            gap: 0.65rem;
             width: 100%;
         }
 
-        @media (min-width: 600px) {
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 0.5rem;
         }
 
-        .header-top-row {
+        .header-brand {
             display: flex;
             align-items: center;
             gap: 0.45rem;
@@ -115,23 +115,49 @@
             border-radius: 50%;
         }
 
-        /* Compact, Light-Colored Month Picker */
-        .month-picker-container {
+        /* Top Right Live Bank Account Balance Pill */
+        .top-account-balance-card {
+            background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
+            color: #ffffff;
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
             display: flex;
-            justify-content: flex-start;
+            flex-direction: column;
+            align-items: flex-end;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
         }
 
-        @media (min-width: 600px) {
-            .month-picker-container {
-                justify-content: flex-end;
-            }
+        .top-account-balance-title {
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .top-account-balance-val {
+            font-size: 0.98rem;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+        }
+
+        .header-sub-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
         }
 
         .month-picker {
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
-            background: #eef2ff; /* Soft light indigo/blue tint */
+            background: #eef2ff;
             padding: 0.3rem 0.55rem;
             border-radius: 10px;
             border: 1px solid #c7d2fe;
@@ -427,7 +453,7 @@
             -webkit-appearance: none;
         }
 
-        /* 3-Column Passbook Header with Center Badge */
+        /* Passbook Header */
         .passbook-card {
             background: var(--card-bg);
             border-radius: 16px;
@@ -647,6 +673,29 @@
             width: 100%;
         }
 
+        /* Combined Family Tracker Header with Total Pill */
+        .family-header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .family-total-pill {
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            color: #0369a1;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
         .family-wallet-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -689,14 +738,21 @@
 
 <div class="container">
     <header>
-        <!-- Row 1: Title and Cloud Sync Badge side-by-side -->
+        <!-- Row 1: Brand & Sync (Left) and Live Bank Account Balance (Right) -->
         <div class="header-top-row">
-            <h1>Spend Tracker</h1>
-            <div class="sync-badge"><div class="sync-dot"></div> Live Cloud Sync</div>
+            <div class="header-brand">
+                <h1>Spend Tracker</h1>
+                <div class="sync-badge"><div class="sync-dot"></div> Live Cloud Sync</div>
+            </div>
+            
+            <div class="top-account-balance-card" onclick="promptUpdateStartingBalance()" title="Click to adjust base bank balance">
+                <div class="top-account-balance-title">My Account Bal ✎</div>
+                <div class="top-account-balance-val" id="myAccountBalanceDisplay">₹0.00</div>
+            </div>
         </div>
         
-        <!-- Row 2: Compact, Tinted Month Selector -->
-        <div class="month-picker-container">
+        <!-- Row 2: Compact Month Picker -->
+        <div class="header-sub-row">
             <div class="month-picker">
                 <label for="monthFilter">Select Month:</label>
                 <input type="month" id="monthFilter">
@@ -909,7 +965,13 @@
 
     <!-- FAMILY WALLET SECTION -->
     <div class="partition-section-container">
-        <h1 style="margin-bottom: 0.35rem;">Family Balance Tracker</h1>
+        <div class="family-header-wrap">
+            <h1 style="margin: 0;">Family Balance Tracker</h1>
+            <div class="family-total-pill">
+                <span>Total Pool:</span>
+                <span id="familyTotalPoolDisplay">₹0.00</span>
+            </div>
+        </div>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.1rem;">
             Net balances carry forward month-to-month automatically.
         </p>
@@ -1103,6 +1165,7 @@
     const INITIAL_BROTHER_BALANCE = 0;
     const INITIAL_SELF_BALANCE = 0;
 
+    let startingBalance = 0;
     let expenses = [];
     let familyTransactions = [];
     let sideEarnings = [];
@@ -1121,6 +1184,8 @@
     const monthFilter = document.getElementById('monthFilter');
     const transactionList = document.getElementById('transactionList');
     const emptyMessage = document.getElementById('emptyMessage');
+    const myAccountBalanceDisplay = document.getElementById('myAccountBalanceDisplay');
+    const familyTotalPoolDisplay = document.getElementById('familyTotalPoolDisplay');
 
     const settlementBox = document.getElementById('settlementBox');
     const isSettledCheckbox = document.getElementById('isSettled');
@@ -1247,7 +1312,6 @@
         return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
     }
 
-    // Precise Chronological Comparator: Date first, then insertion timestamp (newest on top)
     function sortByLatestFirst(a, b) {
         if (a.date !== b.date) {
             return b.date.localeCompare(a.date);
@@ -1255,6 +1319,17 @@
         const timeA = Number(a.createdAt || a.id) || 0;
         const timeB = Number(b.createdAt || b.id) || 0;
         return timeB - timeA;
+    }
+
+    // Editable Base Balance Setter
+    function promptUpdateStartingBalance() {
+        const input = prompt("Enter your initial/starting bank account balance (₹):", startingBalance);
+        if (input !== null) {
+            const val = parseFloat(input);
+            if (!isNaN(val)) {
+                db.ref('settings/startingBalance').set(val);
+            }
+        }
     }
 
     const currentToday = getTodayLocalDate();
@@ -1293,23 +1368,63 @@
     });
 
     // --- REALTIME SYNC LISTENERS ---
+    db.ref('settings/startingBalance').on('value', snapshot => {
+        startingBalance = snapshot.val() !== null ? parseFloat(snapshot.val()) : 0;
+        recalculateMyAccountBalance();
+    });
+
     db.ref('expenses').on('value', snapshot => {
         const val = snapshot.val();
         expenses = val ? Object.values(val) : [];
         renderDashboard();
+        recalculateMyAccountBalance();
     });
 
     db.ref('familyTransactions').on('value', snapshot => {
         const val = snapshot.val();
         familyTransactions = val ? Object.values(val) : [];
         renderFamilyDashboard();
+        recalculateMyAccountBalance();
     });
 
     db.ref('sideEarnings').on('value', snapshot => {
         const val = snapshot.val();
         sideEarnings = val ? Object.values(val) : [];
         renderEarningsDashboard();
+        recalculateMyAccountBalance();
     });
+
+    // Master Live Bank Balance Calculation
+    function recalculateMyAccountBalance() {
+        let liveBalance = startingBalance;
+
+        // 1. Deduct direct payments: UPI and Cash spends (Credit card is limit-based, and Given dues are excluded)
+        expenses.forEach(exp => {
+            const isDirectSpend = (exp.category !== 'Given (To Receive)' && exp.category !== 'Taken (Need to Repay)');
+            const isCashOrUPI = (exp.paymentMethod === 'UPI' || exp.paymentMethod === 'Cash');
+            if (isDirectSpend && isCashOrUPI) {
+                liveBalance -= Number(exp.amount || 0);
+            }
+        });
+
+        // 2. Add all Side Incomes directly
+        sideEarnings.forEach(earn => {
+            liveBalance += Number(earn.amount || 0);
+        });
+
+        // 3. Reflect Family Cashflows assigned to Me (Self)
+        familyTransactions.forEach(ft => {
+            if (ft.person === 'Self') {
+                if (ft.flowType === 'INCOME') {
+                    liveBalance += Number(ft.amount || 0);
+                } else if (ft.flowType === 'EXPENSE') {
+                    liveBalance -= Number(ft.amount || 0);
+                }
+            }
+        });
+
+        myAccountBalanceDisplay.textContent = formatCurrency(liveBalance);
+    }
 
     function resetFormState() {
         form.reset();
@@ -1436,12 +1551,10 @@
     function renderDashboard() {
         const selectedMonth = monthFilter.value;
 
-        // Current Month Entries
         const currentMonthExpenses = expenses
             .filter(exp => exp.date && exp.date.startsWith(selectedMonth))
             .sort(sortByLatestFirst);
 
-        // Prior Carry-Forward Dues
         const priorLentUnsettled = expenses
             .filter(exp => exp.date && exp.date < (selectedMonth + '-01') && exp.category === 'Given (To Receive)' && !exp.isSettled)
             .sort(sortByLatestFirst);
@@ -1481,14 +1594,12 @@
             }
         });
 
-        // Combined Passbook list with carried dues
         let displayList = [
             ...currentMonthExpenses,
             ...priorLentUnsettled.map(item => ({ ...item, isCarried: true })),
             ...priorBorrowUnsettled.map(item => ({ ...item, isCarried: true }))
         ].sort(sortByLatestFirst);
 
-        // Apply Filter
         if (currentSpendFilter !== 'ALL') {
             if (currentSpendFilter === 'Dues') {
                 displayList = displayList.filter(e => e.category === 'Given (To Receive)' || e.category === 'Taken (Need to Repay)');
@@ -1671,6 +1782,10 @@
         momBalanceDisplay.textContent = formatCurrency(momBal);
         brotherBalanceDisplay.textContent = formatCurrency(brotherBal);
         selfBalanceDisplay.textContent = formatCurrency(selfBal);
+
+        // Combined Family Total Pool (Mom + Brother + My Balance)
+        const totalFamilyPool = momBal + brotherBal + selfBal;
+        familyTotalPoolDisplay.textContent = formatCurrency(totalFamilyPool);
     }
 
     function renderEarningsDashboard() {
